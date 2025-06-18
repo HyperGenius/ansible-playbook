@@ -1,0 +1,5 @@
+---
+- name: Ensure connectivity to the target host
+  ansible.builtin.ping:
+  register: ping_result
+  ignore_errors: true
