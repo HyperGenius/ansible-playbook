@@ -6,22 +6,7 @@ target_table_name: "x_1711375_team_c_0_automation_result_tablel"
 # Template file for the request body
 create_record_body_j2_file: "create_record_body.j2"
 patch_record_body_j2_file: "patch_record_body.j2"
-# Default variables for the job result
-exastro_hostname: "exastro.example.com"
-operation_id: "your_operation_id"
-operation_name: "your_operation_name"
-conductor_id: "your_conductor_id"
-conductor_name: "your_conductor_name"
-target_host_s: "{{ inventory_hostname }}"
-execution_date_time: "{{ '%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch, utc=true) | default('') }}"
-status: "Success"
-conductor_result_link: ""
-execution_time_seconds: 0
-error_message: ""
-root_cause: ""
-resolution: ""
-requester: "your_requester"
-comments: "your_comments"
-log_files: ""
+# Job result file name expected to be created before running this role
+job_result_filename: "sample_job_result.json"
 # Path to the template file for creating the record
 upload_log_filepath: "{{ role_path }}/tests/test_files/sample_log_file.log"

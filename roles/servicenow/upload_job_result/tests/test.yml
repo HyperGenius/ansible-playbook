@@ -1,0 +1,65 @@
+# ansible-playbook roles/servicenow/upload_job_result/tests/test.yml -i roles/servicenow/upload_job_result/tests/inventory --vault-password-file .vault_pass.txt
+---
+- hosts: all
+  gather_facts: yes
+  vars_files:
+    - test_vars/exastro_original_vars.yml
+
+  pre_tasks:
+    - name: Set variables for testing
+      ansible.builtin.set_fact:
+        __workflowdir__: "{{ playbook_dir }}"
+
+    - name: Create the workflow directory if it does not exist
+      ansible.builtin.file:
+        path: "{{ __workflowdir__ }}/{{ inventory_hostname }}"
+        state: directory
+      delegate_to: localhost
+
+    - name: Create the job result file if it does not exist
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/test_files/sample_job_result.json"
+        dest: "{{ __workflowdir__ }}/{{ inventory_hostname }}/{{ job_result_filename }}"
+      register: created_job_result_file
+      delegate_to: localhost
+
+    - name: modify 'conductor_name' in job result file
+      ansible.builtin.replace:
+        path: "{{ created_job_result_file.dest }}"
+        regexp: '"conductor_name": "[^"]*"'
+        replace: '"conductor_name": "{{ test_conductor_name }}"'
+      vars:
+        test_conductor_name: "Conductor in {{ inventory_hostname }}"
+      delegate_to: localhost
+
+  roles:
+    - role: ../..
+
+  tasks:
+    - name: Set job result filepath
+      ansible.builtin.set_fact:
+        job_result_filepath: "{{ __workflowdir__ }}/{{ inventory_hostname }}/{{ job_result_filename }}"
+
+    - name: File exists check for job result file on localhost
+      ansible.builtin.stat:
+        path: "{{ job_result_filepath }}"
+      delegate_to: localhost
+      register: job_result_file
+
+    - name: Fail if job result file does not exist
+      ansible.builtin.fail:
+        msg: "Job result file does not exist at {{ job_result_filepath }}"
+      when: not job_result_file.stat.exists
+
+    - name: Print job result file path
+      ansible.builtin.debug:
+        msg: "{{ content | to_nice_json }}"
+      vars:
+        content: "{{ lookup('file', job_result_filepath) }}"
+
+    - name: Delete the workflow directory after testing
+      ansible.builtin.file:
+        path: "{{ __workflowdir__ }}/{{ inventory_hostname }}"
+        state: absent
+      delegate_to: localhost
+      when: job_result_file.stat.exists

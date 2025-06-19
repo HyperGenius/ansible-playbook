@@ -1,14 +1,10 @@
 ---
-- name: Create Variable for job result
-  ansible.builtin.set_fact:
-    job_result: "{{ job_result | default({}) }}"
+- name: Load host-specific variables from the generated file
+  ansible.builtin.include_vars:
+    file: "{{ __workflowdir__ }}/{{ inventory_hostname }}/{{ job_result_filename }}"
+  delegate_to: localhost
 
-- name: Variable for __workflowdir__
-  ansible.builtin.set_fact:
-    __workflowdir__: "/tmp"
-  when: not __workflowdir__ is defined
-
-- name: Load ServiceNOW credentials
+- name: Load ServiceNOW credentials from vars/servicenow_credentials.yml
   ansible.builtin.include_vars:
     file: "servicenow_credentials.yml"
     name: servicenow_creds
