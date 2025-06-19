@@ -33,8 +33,8 @@
 
 以下の変数はデフォルト値が設定されていますが、必要に応じて上書きできます：
 
-- `servicenow_instance`: ServiceNOWのインスタンスURL（デフォルト: "https://dev295887.service-now.com/"）
-- `target_table_name`: ターゲットテーブル名（デフォルト: "x_1711375_team_c_0_automation_result_tablel"）
+- `servicenow_instance`: ServiceNOWのインスタンスURL
+- `target_table_name`: ターゲットテーブル名
 - `create_record_body_j2_file`: レコード作成用のテンプレートファイル（デフォルト: "create_record_body.j2"）
 - `patch_record_body_j2_file`: レコード更新用のテンプレートファイル（デフォルト: "patch_record_body.j2"）
 - `upload_log_filepath`: アップロードするログファイルのパス（デフォルト: "{{ role_path }}/tests/test_files/sample_log_file.log"）
