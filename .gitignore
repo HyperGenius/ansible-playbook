@@ -1,1 +1,3 @@
 venv_*
+inventory.ini
+.vault_pass*
