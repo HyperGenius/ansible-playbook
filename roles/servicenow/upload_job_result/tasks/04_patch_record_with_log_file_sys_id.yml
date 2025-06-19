@@ -1,0 +1,26 @@
+---
+- name: Set variables for patch request
+  ansible.builtin.set_fact:
+    patch_api_endpoint: "{{ servicenow_instance }}/api/now/table/{{ target_table_name }}/{{ record_sys_id }}"
+    patch_body: "{{ lookup('template', patch_record_body_j2_file) }}"
+  when:
+    - record_sys_id is defined
+    - log_file_sys_id is defined  # use jinja2 template for patch body
+    - patch_record_body_j2_file is defined
+
+- name: Patch the record with the uploaded log file sys_id
+  ansible.builtin.uri:
+    url: "{{ patch_api_endpoint }}"
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+    method: "PATCH"
+    user: "{{ servicenow_user }}"
+    password: "{{ servicenow_password }}"
+    body: "{{ patch_body }}"
+    body_format: json
+    status_code: 200
+  register: patch_response
+  when: 
+    - patch_api_endpoint is defined
+    - patch_body is defined

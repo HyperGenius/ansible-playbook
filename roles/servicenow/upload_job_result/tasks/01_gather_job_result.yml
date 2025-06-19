@@ -1,0 +1,28 @@
+---
+- name: Create Variable for job result
+  ansible.builtin.set_fact:
+    job_result: "{{ job_result | default({}) }}"
+
+- name: Variable for __workflowdir__
+  ansible.builtin.set_fact:
+    __workflowdir__: "/tmp"
+  when: not __workflowdir__ is defined
+
+- name: Load ServiceNOW credentials
+  ansible.builtin.include_vars:
+    file: "servicenow_credentials.yml"
+    name: servicenow_creds
+  no_log: true
+
+- name: Set ServiceNow instance URL
+  ansible.builtin.set_fact:
+    servicenow_user: "{{ servicenow_creds.servicenow_user }}"
+    servicenow_password: "{{ servicenow_creds.servicenow_password }}"
+  no_log: true
+
+- name: Fail when servicenow_user or servicenow_password is not defined
+  ansible.builtin.fail:
+    msg: "ServiceNow user or password is not defined. Please set them in the playbook or inventory."
+  when: 
+    - servicenow_user is not defined or servicenow_user == ""
+    - servicenow_password is not defined or servicenow_password == ""

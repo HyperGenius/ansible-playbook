@@ -1,0 +1,10 @@
+---
+- name: Debug upload result
+  ansible.builtin.debug:
+    var: upload_response
+  when: upload_response is defined
+
+- name: Debug patch result
+  ansible.builtin.debug:
+    var: patch_response
+  when: patch_response is defined
