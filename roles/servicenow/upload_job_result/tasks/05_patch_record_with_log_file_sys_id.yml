@@ -1,0 +1,50 @@
+---
+# タスクの実行に必要な変数が定義されているか確認
+# record_sys_id: ServiceNowのレコードのsys_idを指定, 前のタスクで設定されることを想定
+# log_file_sys_id: アップロードしたログファイルのsys_idを指定, 前のタスクで設定されることを想定
+# patch_record_body_j2_file: パッチリクエストのボディを生成するためのテンプレートファイルのパスを指定, デフォルト変数で設定済み
+- name: Check required variables
+  ansible.builtin.assert:
+    that:
+      - record_sys_id is defined
+      - log_file_sys_id is defined
+      - patch_record_body_j2_file is defined
+      - servicenow_instance_url is defined
+      - servicenow_target_table_name is defined
+      - servicenow_user is defined
+      - servicenow_password is defined
+    fail_msg: "One or more required variables (servicenow_instance_url, servicenow_target_table_name, servicenow_user, servicenow_password) are not defined. Please set them in the playbook, inventory, or Vault."
+
+# uriモジュールの実行に必要な一時変数を設定
+# servicenow_instance_url: ServiceNowのインスタンスURLを指定, ユーザーにより設定される
+# servicenow_target_table_name: ServiceNowのターゲットテーブル名を指定, ユーザーにより設定される
+- name: Set variables for patch request
+  ansible.builtin.set_fact:
+    patch_api_endpoint: "{{ servicenow_instance_url }}/api/now/table/{{ servicenow_target_table_name }}/{{ record_sys_id }}"
+    patch_body: "{{ lookup('template', patch_record_body_j2_file) }}"
+
+# ServiceNowの指定されたテーブルのレコードをパッチリクエストで更新
+# ServiceNOWのアップロードファイルカラムに、前のタスクでアップロードしたログファイルのsys_idを設定
+- name: Patch the record with the uploaded log file sys_id
+  ansible.builtin.uri:
+    url: "{{ patch_api_endpoint }}"
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+    method: "PATCH"
+    user: "{{ servicenow_user }}"
+    password: "{{ servicenow_password }}"
+    body: "{{ patch_body }}"
+    body_format: json
+    status_code: 200
+    validate_certs: yes
+  register: patch_response
+
+# レスポンスからパッチリクエストの結果を確認
+- name: Check patch response
+  ansible.builtin.assert:
+    that:
+      - patch_response is defined
+      - patch_response.status == 200
+      - ('result' in patch_response.json | default({}))
+    fail_msg: "Failed to patch the record in ServiceNow. Response: {{ patch_response }}"

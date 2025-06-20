@@ -1,24 +1,13 @@
 ---
-- name: Load host-specific variables from the generated file
+# タスクの実行に必要な変数が定義されているか確認する
+- name: Check if job_result_filepath is defined
+  ansible.builtin.assert:
+    that:
+      - job_result_filepath is defined and job_result_filepath != ""
+    fail_msg: "Required variable 'job_result_filepath' is not defined or is empty. Please set it in the playbook or inventory."
+
+# ServiceNOWのテーブルにアップロードする情報をファイルから取得する
+- name: Gather job result variables from specified file upload to ServiceNow Table
   ansible.builtin.include_vars:
-    file: "{{ __workflowdir__ }}/{{ inventory_hostname }}/{{ job_result_filename }}"
+    file: "{{ job_result_filepath }}"
   delegate_to: localhost
-
-- name: Load ServiceNOW credentials from vars/servicenow_credentials.yml
-  ansible.builtin.include_vars:
-    file: "servicenow_credentials.yml"
-    name: servicenow_creds
-  no_log: true
-
-- name: Set ServiceNow instance URL
-  ansible.builtin.set_fact:
-    servicenow_user: "{{ servicenow_creds.servicenow_user }}"
-    servicenow_password: "{{ servicenow_creds.servicenow_password }}"
-  no_log: true
-
-- name: Fail when servicenow_user or servicenow_password is not defined
-  ansible.builtin.fail:
-    msg: "ServiceNow user or password is not defined. Please set them in the playbook or inventory."
-  when: 
-    - servicenow_user is not defined or servicenow_user == ""
-    - servicenow_password is not defined or servicenow_password == ""

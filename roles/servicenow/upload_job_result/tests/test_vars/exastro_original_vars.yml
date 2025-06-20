@@ -1,9 +1,9 @@
 ---
-__workflowdir__: "{{ role_path }}/tests/test_files"
+__workflowdir__: "{{ playbook_dir }}"
 __OPERATION_ID__: "OP_12345"
 __OPERATION_NAME__: "Sample Operation"
 __CONDUCTOR_INSTANCE_ID__: "CONDUCTOR_12345"
-__CONDUCTOR_NAME__: "Sample Conductor"
+__CONDUCTOR_NAME__: "Sample Conductor executed {{ inventory_hostname }}"
 __TIME_START__: "{{ '%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch, utc=true) | default('') }}"
 __STATUS_ID__: "6"  # Success
 __JUMP_URL__: "http://example.com/job/12345"

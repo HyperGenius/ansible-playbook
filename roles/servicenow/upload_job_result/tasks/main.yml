@@ -1,6 +1,7 @@
 # tasks/main.yml
 ---
 - import_tasks: 01_gather_job_result.yml
-- import_tasks: 02_create_record_to_servicenow.yml
-- import_tasks: 03_upload_log_file_to_created_record.yml
-- import_tasks: 04_patch_record_with_log_file_sys_id.yml
+- import_tasks: 02_validation.yml
+- import_tasks: 03_create_record_to_servicenow.yml
+- import_tasks: 04_upload_log_file_to_created_record.yml
+- import_tasks: 05_patch_record_with_log_file_sys_id.yml

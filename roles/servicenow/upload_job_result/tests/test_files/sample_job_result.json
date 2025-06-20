@@ -1,0 +1,18 @@
+{
+    "exastro_hostname": "exastro.example.com",
+    "operation_id": "your_operation_id",
+    "operation_name": "your_operation_name",
+    "conductor_id": "your_conductor_id",
+    "conductor_name": "Test Conductor",
+    "target_host_s": "{{ inventory_hostname }}",
+    "execution_date_time": "{{ '%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch, utc=true) | default('') }}",
+    "status": "Success",
+    "conductor_result_link": "",
+    "execution_time_seconds": 0,
+    "error_message": "",
+    "root_cause": "",
+    "resolution": "",
+    "requester": "your_requester",
+    "comments": "your_comments",
+    "log_file": ""
+}

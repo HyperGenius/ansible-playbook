@@ -1,12 +1,5 @@
 # defaults/main.yml
 ---
-# Default variables for the ServiceNow upload job result role
-servicenow_instance: "https://dev295887.service-now.com/"
-target_table_name: "x_1711375_team_c_0_automation_result_tablel"
 # Template file for the request body
 create_record_body_j2_file: "create_record_body.j2"
 patch_record_body_j2_file: "patch_record_body.j2"
-# Job result file name expected to be created before running this role
-job_result_filename: "sample_job_result.json"
-# Path to the template file for creating the record
-upload_log_filepath: "{{ role_path }}/tests/test_files/sample_log_file.log"
