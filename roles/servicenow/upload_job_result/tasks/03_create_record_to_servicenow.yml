@@ -1,23 +1,23 @@
 ---
 # uriモジュールの実行に必要な一時変数を設定
 # create_record_body_j2_file: テンプレートファイルのパスを指定, デフォルト変数で設定済み
-# VAR_servicenow_instance_url: ServiceNowのインスタンスURLを指定, ユーザーにより設定される
-# VAR_servicenow_target_table_name: ServiceNowのターゲットテーブル名を指定, ユーザーにより設定される
+# servicenow_instance_url: ServiceNowのインスタンスURLを指定, ユーザーにより設定される
+# servicenow_target_table_name: ServiceNowのターゲットテーブル名を指定, ユーザーにより設定される
 - name: Create Temporary Variable for uri module to create record
   ansible.builtin.set_fact:
-    _servicenow_api_endpoint: "{{ VAR_servicenow_instance_url }}/api/now/table/{{ VAR_servicenow_target_table_name }}"
+    _servicenow_api_endpoint: "{{ servicenow_instance_url }}/api/now/table/{{ servicenow_target_table_name }}"
     _request_body: "{{ lookup('template', create_record_body_j2_file) }}"
 
 # ServiceNowの指定されたテーブルにジョブ結果のレコードを作成
-- name: Create Record of Job Result to ServiceNow table specified by parameter VAR_servicenow_target_table_name
+- name: Create Record of Job Result to ServiceNow table specified by parameter servicenow_target_table_name
   ansible.builtin.uri:
     url: "{{ _servicenow_api_endpoint }}"
     headers:
       Content-Type: "application/json"
       Accept: "application/json"
     method: "POST"
-    user: "{{ VAR_servicenow_user }}"
-    password: "{{ VAR_servicenow_password }}"
+    user: "{{ servicenow_user }}"
+    password: "{{ servicenow_password }}"
     body: "{{ _request_body }}"
     body_format: json
     status_code: 201

@@ -1,5 +1,10 @@
 # defaults/main.yml
 ---
+# Role内で使用する変数のデフォルト値定義
+servicenow_user: ""
+servicenow_password: ""
+servicenow_instance_url: "https://<instance_id>.service-now.com/"
+servicenow_target_table_name: ""
 # Template file for the request body
 create_record_body_j2_file: "create_record_body.j2"
 patch_record_body_j2_file: "patch_record_body.j2"
