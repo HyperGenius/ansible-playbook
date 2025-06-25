@@ -1,6 +1,0 @@
-# use with --vault-password-file .vault_pass.txt or --ask-vault-pass
----
-- hosts: localhost
-  gather_facts: yes
-  roles:
-    - role: servicenow/upload_job_result
