@@ -9,18 +9,18 @@
       - record_sys_id is defined
       - log_file_sys_id is defined
       - patch_record_body_j2_file is defined
-      - servicenow_instance_url is defined
-      - servicenow_target_table_name is defined
-      - servicenow_user is defined
-      - servicenow_password is defined
-    fail_msg: "One or more required variables (servicenow_instance_url, servicenow_target_table_name, servicenow_user, servicenow_password) are not defined. Please set them in the playbook, inventory, or Vault."
+      - VAR_servicenow_instance_url is defined
+      - VAR_servicenow_target_table_name is defined
+      - VAR_servicenow_user is defined
+      - VAR_servicenow_password is defined
+    fail_msg: "One or more required variables (VAR_servicenow_instance_url, VAR_servicenow_target_table_name, VAR_servicenow_user, VAR_servicenow_password) are not defined. Please set them in the playbook, inventory, or Vault."
 
 # uriモジュールの実行に必要な一時変数を設定
-# servicenow_instance_url: ServiceNowのインスタンスURLを指定, ユーザーにより設定される
-# servicenow_target_table_name: ServiceNowのターゲットテーブル名を指定, ユーザーにより設定される
+# VAR_servicenow_instance_url: ServiceNowのインスタンスURLを指定, ユーザーにより設定される
+# VAR_servicenow_target_table_name: ServiceNowのターゲットテーブル名を指定, ユーザーにより設定される
 - name: Set variables for patch request
   ansible.builtin.set_fact:
-    patch_api_endpoint: "{{ servicenow_instance_url }}/api/now/table/{{ servicenow_target_table_name }}/{{ record_sys_id }}"
+    patch_api_endpoint: "{{ VAR_servicenow_instance_url }}/api/now/table/{{ VAR_servicenow_target_table_name }}/{{ record_sys_id }}"
     patch_body: "{{ lookup('template', patch_record_body_j2_file) }}"
 
 # ServiceNowの指定されたテーブルのレコードをパッチリクエストで更新
@@ -32,8 +32,8 @@
       Content-Type: "application/json"
       Accept: "application/json"
     method: "PATCH"
-    user: "{{ servicenow_user }}"
-    password: "{{ servicenow_password }}"
+    user: "{{ VAR_servicenow_user }}"
+    password: "{{ VAR_servicenow_password }}"
     body: "{{ patch_body }}"
     body_format: json
     status_code: 200

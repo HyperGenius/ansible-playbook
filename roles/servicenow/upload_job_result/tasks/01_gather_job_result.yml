@@ -1,13 +1,13 @@
 ---
 # タスクの実行に必要な変数が定義されているか確認する
-- name: Check if job_result_filepath is defined
+- name: Check if VAR_job_result_filepath is defined
   ansible.builtin.assert:
     that:
-      - job_result_filepath is defined and job_result_filepath != ""
-    fail_msg: "Required variable 'job_result_filepath' is not defined or is empty. Please set it in the playbook or inventory."
+      - VAR_job_result_filepath is defined and VAR_job_result_filepath != ""
+    fail_msg: "Required variable 'VAR_job_result_filepath' is not defined or is empty. Please set it in the playbook or inventory."
 
 # ServiceNOWのテーブルにアップロードする情報をファイルから取得する
 - name: Gather job result variables from specified file upload to ServiceNow Table
   ansible.builtin.include_vars:
-    file: "{{ job_result_filepath }}"
+    file: "{{ VAR_job_result_filepath }}"
   delegate_to: localhost

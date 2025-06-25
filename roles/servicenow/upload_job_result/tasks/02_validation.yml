@@ -3,8 +3,8 @@
 - name: Check if job_id is defined
   ansible.builtin.assert:
     that:
-      - servicenow_instance_url is defined
-      - servicenow_target_table_name is defined
-      - servicenow_user is defined
-      - servicenow_password is defined
+      - VAR_servicenow_instance_url is defined
+      - VAR_servicenow_target_table_name is defined
+      - VAR_servicenow_user is defined
+      - VAR_servicenow_password is defined
     fail_msg: "Required ServiceNow Parameters(instance_url, target_table_name, user, password) is not defined or is empty. Please set them in the playbook or inventory."
