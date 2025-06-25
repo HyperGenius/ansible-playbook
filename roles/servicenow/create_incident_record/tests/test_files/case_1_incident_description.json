@@ -1,0 +1,8 @@
+{
+    "short_description": "Test Case 1",
+    "description": "This is a sample incident description in test case 1.\\nHostname: {{ inventory_hostname }}",
+    "impact": 3,
+    "urgency": 3,
+    "category": "Inquiry/Help",
+    "state": 1
+}

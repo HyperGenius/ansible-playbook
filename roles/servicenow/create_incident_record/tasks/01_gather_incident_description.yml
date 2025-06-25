@@ -1,0 +1,19 @@
+---
+# リモートサーバー上からインシデント詳細が記載されたファイルを取得する
+- name: Gather incident description from remote server
+  ansible.builtin.fetch:
+    src: "{{ remote_filepath_incident_description }}"
+    dest: "{{ local_dest_path }}"
+    flat: yes
+  vars:
+    local_dest_path: "{{ local_tmp_path | default('/tmp') }}/{{ inventory_hostname }}_{{ remote_filepath_incident_description | basename }}"
+  register: incident_description_file
+
+# インシデント詳細のファイルから変数を取得する
+- name: Gather incident description variables from specified file
+  ansible.builtin.include_vars:
+    file: "{{ incident_description_file.dest }}"
+  delegate_to: localhost
+  when:
+    - incident_description_file is defined
+    - not incident_description_file.failed

@@ -1,0 +1,22 @@
+---
+# uriモジュールの実行に必要な一時変数を設定
+# incident_ticket.j2: テンプレートファイルのパスを指定
+# servicenow_instance_url: ServiceNowのインスタンスURLを指定, ユーザーにより設定される
+- name: Create Temporary Variable for uri module to create record
+  ansible.builtin.set_fact:
+    _servicenow_api_endpoint: "{{ servicenow_instance_url }}/api/now/table/incident"
+    _request_body: "{{ lookup('template', 'incident_ticket.j2') }}"
+
+- name: Create Incident Record to ServiceNow
+  ansible.builtin.uri:
+    url: "{{ _servicenow_api_endpoint }}"
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+    method: "POST"
+    user: "{{ servicenow_user }}"
+    password: "{{ servicenow_password }}"
+    body: "{{ _request_body }}"
+    body_format: json
+    status_code: 201
+  register: response

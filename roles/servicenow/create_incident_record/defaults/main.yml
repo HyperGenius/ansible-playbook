@@ -1,0 +1,26 @@
+---
+# Default variables for creating an incident record in ServiceNow
+# ServiceNowでインシデントレコードを作成するためのデフォルト変数
+# Exastroからの入力用に定義しているが、コマンドラインから実行する場合はansible-vaultで設定すること
+servicenow_user: ""
+servicenow_password: ""
+servicenow_instance_url: "https://<instance_id>.service-now.com/"
+servicenow_target_table_name: ""
+
+# Path to the incident description file on the remote server
+# リモートサーバー上に記録されているインシデント詳細ファイルのパス
+remote_filepath_incident_description: "/tmp/sample_incident_description.json"
+
+# Incident record creation body template file
+# インシデントレコード作成用のパラメータ
+short_description: ""   # Short description of the incident, default is empty
+description: ""         # Detailed description of the incident, default is empty
+category: "Inquiry/Help"
+# impact: 1 - High, 2 - Medium, 3 - Low
+impact_as_integer: 3
+# Urgency: 1 - High, 2 - Medium, 3 - Low
+urgency_as_integer: 3
+# Priority is automatically calculated based on impact and urgency
+# priority: 1(Critical) - 5(planning)
+# state: 1 - New, 2 - In Progress, 3 - On Hold, 4 - Resolved, 5 - Closed, 6 - Canceled
+state_as_integer: 1
