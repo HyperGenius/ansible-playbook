@@ -6,7 +6,7 @@
 # ログファイルの指定がある場合のみ、次のタスクを実行
 - import_tasks: 04_upload_log_file_to_created_record.yml
   when:
-    - upload_log_filepath is defined
+    - remote_filepath_upload_log is defined
 - import_tasks: 05_patch_record_with_log_file_sys_id.yml
   when:
-    - upload_log_filepath is defined
+    - remote_filepath_upload_log is defined

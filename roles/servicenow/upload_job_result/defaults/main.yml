@@ -5,6 +5,8 @@ servicenow_user: ""
 servicenow_password: ""
 servicenow_instance_url: "https://<instance_id>.service-now.com/"
 servicenow_target_table_name: ""
+remote_filepath_job_result: "/tmp/job_result.json"
+remote_filepath_upload_log: "/var/log/exastro/exec.log"
 # Template file for the request body
 create_record_body_j2_file: "create_record_body.j2"
 patch_record_body_j2_file: "patch_record_body.j2"

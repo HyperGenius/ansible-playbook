@@ -17,25 +17,18 @@
           - servicenow_password is defined
         fail_msg: "Required ServiceNow Parameters(instance_url, target_table_name, user, password) is not defined or is empty. Please set them in the playbook or inventory."
 
+    # Create job result file on hosts
+    # テスト対象ホスト上にジョブ結果ファイルを作成する
     - name: Create job result directory if it does not exist
       ansible.builtin.file:
-        path: "{{ job_result_filepath | dirname }}"
+        path: "{{ remote_filepath_job_result | dirname }}"
         state: directory
-      delegate_to: localhost
 
     - name: Copy test job result file to the expected location
       ansible.builtin.copy:
         src: "{{ playbook_dir }}/test_files/sample_job_result.json"
-        dest: "{{ job_result_filepath }}"
+        dest: "{{ remote_filepath_job_result }}"
       register: created_job_result_file
-      delegate_to: localhost
-
-    - name: Copy test log file to the expected location
-      ansible.builtin.copy:
-        src: "{{ playbook_dir }}/test_files/sample_log_file.log"
-        dest: "{{ upload_log_filepath }}"
-      register: created_upload_log_file
-      delegate_to: localhost
 
     - name: modify 'comments' in job result file for testing
       ansible.builtin.replace:
@@ -44,6 +37,14 @@
         replace: '"comments": "{{ test_comments }}"'
       vars:
         test_comments: "Executed in host:{{ inventory_hostname }}"
+
+    # Create upload log file on localhost
+    # ローカルホスト上にアップロードログファイルを作成する
+    - name: Copy test log file to the expected location
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/test_files/sample_log_file.log"
+        dest: "{{ remote_filepath_upload_log }}"
+      register: created_upload_log_file
       delegate_to: localhost
 
   roles:
@@ -67,9 +68,12 @@
       vars:
         content: "{{ lookup('file', created_job_result_file.dest) }}"
 
-    - name: Delete the workflow directory after testing
+    - name: Delete created test files on localhost
       ansible.builtin.file:
-        path: "{{ created_job_result_file.dest | dirname }}"
+        path: "{{ created_job_result_file.dest }}"
         state: absent
       delegate_to: localhost
       when: job_result_file.stat.exists
+      with_items:
+        - "{{ created_upload_log_file.dest }}"
+        - "{{ created_job_result_file.dest }}"

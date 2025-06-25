@@ -6,7 +6,7 @@
 
 このロールは以下の処理を行います：
 
-1. ジョブ結果の情報を所定のJSONファイル(変数名:`job_result_filepath`)から読み込み、変数として設定します。
+1. ジョブ結果の情報を所定のJSONファイル(変数名:`remote_filepath_job_result`)から読み込み、変数として設定します。
 2. ServiceNOWのカスタムテーブルにレコードを作成します。
 3. ログファイルの指定がある場合、該当のファイルをアップロードします。
 4. アップロードしたログファイルのsys_idをレコードに関連付けます。
@@ -36,8 +36,8 @@
 - `servicenow_password`: ServiceNOWのパスワード
 - `servicenow_instance_url`: ServiceNOWのインスタンスURL
 - `servicenow_target_table_name`: ターゲットテーブル名
-- `job_result_filepath`: ジョブ結果の情報が格納されたJSONファイルのパス（例: "{{ __workflowdir__ }}/{{ inventory_hostname }}/job_result.json"）
-- `upload_log_filepath`: アップロードするログファイルのパス（例: "{{ __workflowdir__ }}/{{ inventory_hostname }}/upload_log.json"）
+- `remote_filepath_job_result`: ジョブ結果の情報が格納されたJSONファイルのパス（例: "{{ __workflowdir__ }}/{{ inventory_hostname }}/job_result.json"）
+- `remote_filepath_upload_log`: アップロードするログファイルのパス（例: "/var/log/exastro/exec.log"）
 
 ### デフォルト変数
 
