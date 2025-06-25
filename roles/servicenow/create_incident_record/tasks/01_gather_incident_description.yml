@@ -17,3 +17,10 @@
   when:
     - incident_description_file is defined
     - not incident_description_file.failed
+
+# fetchしたインシデント詳細ファイルを削除
+- name: Remove fetched incident description file
+  ansible.builtin.file:
+    path: "{{ incident_description_file.dest }}"
+    state: absent
+  delegate_to: localhost
