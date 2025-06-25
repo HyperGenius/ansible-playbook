@@ -39,13 +39,6 @@
 - `remote_filepath_job_result`: ジョブ結果の情報が格納されたJSONファイルのパス（例: "{{ __workflowdir__ }}/{{ inventory_hostname }}/job_result.json"）
 - `remote_filepath_upload_log`: アップロードするログファイルのパス（例: "/var/log/exastro/exec.log"）
 
-### デフォルト変数
-
-以下の変数はデフォルト値が設定されていますが、必要に応じて上書きできます：
-
-- `create_record_body_j2_file`: レコード作成用のテンプレートファイル（デフォルト: "create_record_body.j2"）
-- `patch_record_body_j2_file`: レコード更新用のテンプレートファイル（デフォルト: "patch_record_body.j2"）
-
 ### ジョブ結果に関する変数
 テンプレートファイル`./templates/create_record_body.j2`を参照してください。
 

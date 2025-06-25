@@ -2,13 +2,11 @@
 # タスクの実行に必要な変数が定義されているか確認
 # record_sys_id: ServiceNowのレコードのsys_idを指定, 前のタスクで設定されることを想定
 # log_file_sys_id: アップロードしたログファイルのsys_idを指定, 前のタスクで設定されることを想定
-# patch_record_body_j2_file: パッチリクエストのボディを生成するためのテンプレートファイルのパスを指定, デフォルト変数で設定済み
 - name: Check required variables
   ansible.builtin.assert:
     that:
       - record_sys_id is defined
       - log_file_sys_id is defined
-      - patch_record_body_j2_file is defined
       - servicenow_instance_url is defined
       - servicenow_target_table_name is defined
       - servicenow_user is defined
@@ -21,7 +19,7 @@
 - name: Set variables for patch request
   ansible.builtin.set_fact:
     patch_api_endpoint: "{{ servicenow_instance_url }}/api/now/table/{{ servicenow_target_table_name }}/{{ record_sys_id }}"
-    patch_body: "{{ lookup('template', patch_record_body_j2_file) }}"
+    patch_body: "{{ lookup('template', 'patch_record_body.j2') }}"
 
 # ServiceNowの指定されたテーブルのレコードをパッチリクエストで更新
 # ServiceNOWのアップロードファイルカラムに、前のタスクでアップロードしたログファイルのsys_idを設定

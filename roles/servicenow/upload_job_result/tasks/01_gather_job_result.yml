@@ -10,7 +10,7 @@
 - name: Get job result content from remote file
   ansible.builtin.fetch:
     src: "{{ remote_filepath_job_result }}"
-    dest: "{{ local_tmp_path | default('/tmp') }}/{{ remote_filepath_job_result | basename }}"
+    dest: "{{ local_tmp_path | default('/tmp') }}/{{ inventory_hostname }}_{{ remote_filepath_job_result | basename }}"
     flat: yes
   register: job_result_file
 
@@ -22,3 +22,10 @@
   when:
     - job_result_file is defined
     - not job_result_file.failed
+
+# fetchしたジョブ結果ファイルを削除
+- name: Remove fetched job result file
+  ansible.builtin.file:
+    path: "{{ job_result_file.dest }}"
+    state: absent
+  delegate_to: localhost

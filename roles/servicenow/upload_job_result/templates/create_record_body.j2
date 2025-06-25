@@ -1,9 +1,9 @@
 {
   "u_exastro_hostname": "{{ exastro_hostname }}",
-  "u_operation_id": "{{ __OPERATION_ID__ }}",
-  "u_operation_name": "{{ __OPERATION_NAME__ }}",
-  "u_conductor_id": "{{ __CONDUCTOR_INSTANCE_ID__ }}",
-  "u_conductor_name": "{{ __CONDUCTOR_NAME__ }}",
+  "u_operation_id": "{{ __operation__.split('_')[1] }}",
+  "u_operation_name": "{{ __operation__.split('_')[2] }}",
+  "u_conductor_id": "{{ __conductor_id__ }}",
+  "u_conductor_name": "{{ __execution_no__ }}",
   "u_target_host_s_": "{{ target_host_s }}",
   "u_execution_date_time": "{{ __TIME_START__ }}",
   "u_status": "{{ __STATUS_ID__ }}",

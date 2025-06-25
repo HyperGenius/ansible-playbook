@@ -51,29 +51,11 @@
     - role: ../..
 
   tasks:
-    - name: File exists check for job result file on localhost
-      ansible.builtin.stat:
-        path: "{{ created_job_result_file.dest }}"
-      delegate_to: localhost
-      register: job_result_file
+    - name: Slurp job result file content
+      ansible.builtin.slurp:
+        src: "{{ created_job_result_file.dest }}"
+      register: slurped_job_result
 
-    - name: Fail if job result file does not exist
-      ansible.builtin.fail:
-        msg: "Job result file does not exist at {{ created_job_result_file.dest }}"
-      when: not job_result_file.stat.exists
-
-    - name: Print job result file path
+    - name: Print job result file content
       ansible.builtin.debug:
-        msg: "{{ content | to_nice_json }}"
-      vars:
-        content: "{{ lookup('file', created_job_result_file.dest) }}"
-
-    - name: Delete created test files on localhost
-      ansible.builtin.file:
-        path: "{{ created_job_result_file.dest }}"
-        state: absent
-      delegate_to: localhost
-      when: job_result_file.stat.exists
-      with_items:
-        - "{{ created_upload_log_file.dest }}"
-        - "{{ created_job_result_file.dest }}"
+        msg: "Job Result Content: {{ slurped_job_result.content | b64decode | from_json | to_nice_json }}"
