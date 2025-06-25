@@ -1,0 +1,18 @@
+{
+    "python.defaultInterpreterPath": "venv_ansible_develop/bin/python",
+    "workbench.colorCustomizations": {
+        "tab.activeBackground": "#4b4b53",
+        "tab.hoverForeground": "#ffffff",
+        "tab.hoverBackground": "#2f3233",
+        "titleBar.activeBackground": "#6d6401",
+        "titleBar.activeForeground": "#c9cfe7",
+        "titleBar.inactiveBackground": "#837c36",
+        "titleBar.inactiveForeground": "#868fa7",
+        "activityBar.background": "#615b1b",
+        "activityBar.foreground": "#b4b9cd",
+        "activityBar.inactiveForeground": "#bdc7f0",
+        "statusBar.background": "#7e8d41",
+        "statusBar.foreground": "#ffffff",
+        "editor.lineHighlightBackground": "#292929"
+    }
+}
