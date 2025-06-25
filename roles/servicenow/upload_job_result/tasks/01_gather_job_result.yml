@@ -10,12 +10,9 @@
 - name: Get job result content from remote file
   ansible.builtin.fetch:
     src: "{{ remote_filepath_job_result }}"
-    dest: "{{ ansible_tmp_path | default('/tmp') }}/{{ remote_filepath_job_result | basename }}"
+    dest: "{{ local_tmp_path | default('/tmp') }}/{{ remote_filepath_job_result | basename }}"
     flat: yes
   register: job_result_file
-
-- debug:
-    var: job_result_file
 
 # ServiceNOWのテーブルにアップロードする情報をファイルから取得する
 - name: Gather job result variables from specified file upload to ServiceNow Table
