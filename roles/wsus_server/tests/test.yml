@@ -1,0 +1,147 @@
+# tests/test.yml
+---
+- name: Test WSUS Server Role
+  hosts: your_wsus_test_server_group # テスト対象のWindows VMグループを指定
+  gather_facts: false # テストの実行速度を優先する場合はfalseに
+
+  vars:
+    # テスト専用の変数オーバーライド (必要であれば)
+    # 例: テスト中はディスク容量を節約するため、同期言語を限定する
+    # wsus_enabled_languages:
+    #   - "en"
+
+  pre_tasks:
+    - name: Ensure WinRM is ready for testing (optional, if not guaranteed by VM template)
+      ansible.windows.win_shell: Write-Host "WinRM is responsive"
+      changed_when: false
+      failed_when: false # 接続不可でもここで失敗させない
+
+  roles:
+    - wsus_server # 構築対象のWSUSロールを実行
+
+  post_tasks:
+    - name: Verify WSUS Service is Running
+      ansible.windows.win_service:
+        name: WsusService
+        state: started
+      register: wsus_service_status
+      failed_when: wsus_service_status.state != 'running'
+      tags: verification
+
+    - name: Verify IIS Default Web Site (WSUS Pool) is Running
+      ansible.windows.win_service:
+        name: W3SVC # IIS Admin Service
+        state: started
+      register: iis_service_status
+      failed_when: iis_service_status.state != 'running'
+      tags: verification
+
+    - name: Verify WSUS Application Pool in IIS is Started (advanced)
+      # IISモジュールがあればより確実ですが、ここではPowerShellで確認
+      ansible.windows.win_powershell:
+        script: |
+          Import-Module WebAdministration
+          $appPool = Get-WebApplicationPool -Name "WSUSPool"
+          if ($appPool -and $appPool.State -eq "Started") {
+              Write-Host "WSUSPool is Started"
+              exit 0
+          } else {
+              Write-Error "WSUSPool is not Started or not found"
+              exit 1
+          }
+      tags: verification
+
+    - name: Verify WSUS Content Directory Exists
+      ansible.windows.win_file:
+        path: "{{ wsus_content_dir }}"
+        state: directory
+      tags: verification
+
+    - name: Verify Basic WSUS Configuration (PowerShell)
+      ansible.windows.win_powershell:
+        script: |
+          Import-Module UpdateServices
+          $wsus = Get-WsusServer
+          $config = $wsus.GetConfiguration()
+
+          # コンテンツディレクトリの検証
+          if ($config.ContentDir -ne "{{ wsus_content_dir }}") {
+              Write-Error "ContentDir does not match expected value."
+              exit 1
+          }
+
+          # プロキシ設定の検証 (wsus_use_proxy が true の場合)
+          {% if wsus_use_proxy %}
+          if ($config.ProxyServer -ne "{{ wsus_proxy_server_address }}") {
+              Write-Error "ProxyServer does not match expected value."
+              exit 1
+          }
+          if ($config.ProxyPort -ne {{ wsus_proxy_server_port }}) {
+              Write-Error "ProxyPort does not match expected value."
+              exit 1
+          }
+          # 認証設定もここで検証可能ですが、平文パスワードの比較は避けるべきです
+          {% else %}
+          if ($config.ProxyServer -ne "") {
+              Write-Error "ProxyServer should be empty when not using proxy."
+              exit 1
+          }
+          {% endif %}
+
+          # 同期元がMicrosoft Updateであることを確認 (例)
+          if ($config.SyncFromMicrosoftUpdate -ne ${{ wsus_sync_from_microsoft_update | lower }}) {
+              Write-Error "SyncFromMicrosoftUpdate does not match expected value."
+              exit 1
+          }
+
+          Write-Host "Basic WSUS configuration verified successfully."
+      tags: verification
+
+    - name: (Optional) Verify Specific Product/Classification/Language Enabled Status
+      # これはかなり複雑になるため、必要に応じて追加
+      ansible.windows.win_powershell:
+        script: |
+          Import-Module UpdateServices
+          $wsus = Get-WsusServer
+          $config = $wsus.GetConfiguration()
+
+          # 例: 日本語が有効になっていることを確認
+          {% if not wsus_enable_all_languages and 'ja' in wsus_enabled_languages %}
+          if (-not ($config.EnabledLanguages -contains "ja")) {
+              Write-Error "Japanese language is not enabled."
+              exit 1
+          }
+          {% endif %}
+
+          # 例: Windows 10 製品が有効になっていることを確認
+          # 製品GUIDの文字列比較は注意が必要
+          # $expectedProducts = @({{ wsus_enabled_products_guids | map('to_json') | join(',') | default('') }})
+          # $actualProducts = ($config.EnabledProducts | Select-Object -ExpandProperty ProductId | ForEach-Object { $_.Guid.ToString() })
+          # if (-not ($expectedProducts | ForEach-Object { $actualProducts -contains $_ } | ForEach-Object { $_ -eq $true } -eq $true)) {
+          #     Write-Error "Product synchronization settings do not match."
+          #     exit 1
+          # }
+
+          Write-Host "Advanced WSUS synchronization settings verified successfully (if applicable)."
+      tags: verification
+
+    - name: (Optional) Wait for first sync to complete or check sync status
+      # 最初の同期完了まで待つのはCIでは長すぎる可能性あり
+      # ansible.windows.win_powershell:
+      #   script: |
+      #     Import-Module UpdateServices
+      #     $wsus = Get-WsusServer
+      #     $subscription = $wsus.CreateSubscription()
+      #     while ($subscription.Get  SynchronizationStatus().IsSynchronizing) {
+      #         Write-Host "Waiting for sync to complete..."
+      #         Start-Sleep -Seconds 60
+      #     }
+      #     if ($subscription.GetSynchronizationStatus().LastSyncResult -ne "Succeeded") {
+      #         Write-Error "Initial synchronization failed."
+      #         exit 1
+      #     }
+      #   register: sync_status
+      #   until: sync_status.stdout.find('Succeeded') != -1 or sync_status.stdout.find('failed') != -1
+      #   retries: 30 # 30分待つ (60秒 * 30)
+      #   delay: 60
+      # tags: verification

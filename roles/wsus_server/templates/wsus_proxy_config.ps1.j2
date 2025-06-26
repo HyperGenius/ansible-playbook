@@ -1,0 +1,66 @@
+# roles/wsus_server/templates/wsus_proxy_config.ps1.j2
+
+<#
+.SYNOPSIS
+    WSUSサーバーのプロキシ設定を構成します。
+.DESCRIPTION
+    WSUS管理コンソールの「Update Source and Proxy Server」タブで行う設定を自動化します。
+    Jinja2テンプレートとして、Ansibleから変数を渡して使用します。
+#>
+
+# WSUSモジュールをインポート
+Import-Module UpdateServices
+
+$wsus = Get-WsusServer
+$config = $wsus.GetConfiguration()
+
+Write-Host "WSUSプロキシサーバー設定を適用します..."
+
+{% if wsus_use_proxy %}
+Write-Host "プロキシサーバーの使用を有効にします。"
+$config.SetConfigurationSetting("ProxyServer", "{{ wsus_proxy_server_address }}")
+$config.SetConfigurationSetting("ProxyPort", {{ wsus_proxy_server_port }})
+
+    {% if wsus_proxy_requires_auth %}
+    Write-Host "プロキシ認証情報を設定します。"
+    # SecureStringの作成
+    $securePassword = ConvertTo-SecureString -String "{{ wsus_proxy_password }}" -AsPlainText -Force
+    $credential = New-Object System.Management.Automation.PSCredential("{{ wsus_proxy_username }}", $securePassword)
+
+    # GetNetworkCredential() メソッドを使用してパスワードを抽出
+    $config.SetConfigurationSetting("ProxyUserName", "{{ wsus_proxy_username }}")
+    $config.SetConfigurationSetting("ProxyUserPassword", $credential.GetNetworkCredential().Password)
+
+        {% if wsus_proxy_allow_basic_auth %}
+        Write-Host "基本認証を許可します (パスワードはクリアテキストで送信されます)。"
+        $config.SetConfigurationSetting("ProxyAllowAnonymous", $false) # 匿名を許可しない = 認証が必要
+        $config.SetConfigurationSetting("ProxyAllowBasic", $true)      # 基本認証を許可
+        {% else %}
+        Write-Host "Windows認証を使用します。"
+        $config.SetConfigurationSetting("ProxyAllowAnonymous", $false)
+        $config.SetConfigurationSetting("ProxyAllowBasic", $false)     # 基本認証は許可しない
+        {% endif %}
+
+    {% else %}
+    Write-Host "プロキシに認証は不要です。"
+    $config.SetConfigurationSetting("ProxyUserName", "")     # ユーザー名クリア
+    $config.SetConfigurationSetting("ProxyUserPassword", "") # パスワードクリア
+    $config.SetConfigurationSetting("ProxyAllowAnonymous", $true) # 匿名を許可
+    $config.SetConfigurationSetting("ProxyAllowBasic", $false)    # 基本認証は不要
+    {% endif %}
+
+{% else %}
+Write-Host "プロキシサーバーを使用しません。設定をクリアします。"
+# プロキシ設定を無効化、クリア
+$config.SetConfigurationSetting("ProxyServer", "")
+$config.SetConfigurationSetting("ProxyPort", 80) # デフォルトポートに戻す
+$config.SetConfigurationSetting("ProxyUserName", "")
+$config.SetConfigurationSetting("ProxyUserPassword", "")
+$config.SetConfigurationSetting("ProxyAllowAnonymous", $true)
+$config.SetConfigurationSetting("ProxyAllowBasic", $false)
+{% endif %}
+
+# 変更を保存
+$config.Save()
+
+Write-Host "WSUSプロキシサーバー設定が完了しました。"

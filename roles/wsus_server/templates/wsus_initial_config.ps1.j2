@@ -1,0 +1,43 @@
+# roles/wsus_server/templates/wsus_initial_config.ps1.j2
+
+<#
+.SYNOPSIS
+    WSUSサーバーの初期設定を実行します。
+.DESCRIPTION
+    Invoke-WsusServerConfiguration を実行し、WSUSの基本的な構成を行います。
+    Jinja2テンプレートとして、Ansibleから変数を渡して使用します。
+#>
+
+# WSUSモジュールをインポート
+Import-Module UpdateServices
+
+# コンテンツディレクトリのパス
+$wsusContentPath = "{{ wsus_content_dir }}"
+
+# コンテンツディレクトリが存在しない場合は作成
+if (-not (Test-Path $wsusContentPath)) {
+    Write-Host "WSUSコンテンツディレクトリ '$wsusContentPath' を作成します。"
+    New-Item -Path $wsusContentPath -ItemType Directory -Force
+}
+
+Write-Host "Invoke-WsusServerConfiguration を実行します..."
+
+$configParams = @{
+    ContentDir = $wsusContentPath
+    AcceptEula = $true
+}
+
+# SQL Serverを使用する場合は -SqlServerName や -SqlInstanceName を追加
+# WIDを使用する場合は指定不要
+{% if wsus_use_sql_server %}
+# SQL Serverを使用する場合
+$configParams.Add("SqlServerName", "{{ wsus_sql_server_name }}")
+{% if wsus_sql_instance_name %}
+# もし SqlInstanceName を明確に指定する場合 (SqlServerNameにホスト名のみ指定の場合)
+$configParams.Add("SqlInstanceName", "{{ wsus_sql_instance_name }}")
+{% endif %}
+{% endif %}
+
+Invoke-WsusServerConfiguration @configParams
+
+Write-Host "WSUS初期設定が完了しました。"

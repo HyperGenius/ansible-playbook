@@ -1,0 +1,63 @@
+# roles/wsus_server/defaults/main.yml
+---
+wsus_http_port: 8530
+wsus_https_port: 8531
+wsus_content_dir: C:\WSUS
+wsus_reboot_after_install: false # WSUSインストール後の再起動を制御
+
+# 初期構成関連
+wsus_perform_initial_config: true
+wsus_start_initial_sync: true
+
+# 同期設定
+wsus_sync_from_microsoft_update: true # Microsoft Updateから同期するか
+wsus_upstream_server: "" # アップストリームサーバー（Microsoft Updateの場合は空文字）
+wsus_upstream_port_http: 80
+wsus_upstream_port_https: 443
+wsus_is_replica: false # レプリカサーバーかどうか
+
+# Proxy Server Settings
+wsus_use_proxy: false               # プロキシサーバーを使用するかどうか
+wsus_proxy_server_address: ""       # プロキシサーバーのアドレス (例: proxy.example.com)
+wsus_proxy_server_port: 8080        # プロキシサーバーのポート
+wsus_proxy_requires_auth: false     # プロキシが認証を必要とするかどうか
+wsus_proxy_username: ""             # プロキシ認証ユーザー名
+wsus_proxy_password: ""             # プロキシ認証パスワード (Ansible Vaultによる保護を推奨)
+wsus_proxy_allow_basic_auth: false  # 基本認証を許可するか (パスワードがテキストで送信されるため注意)
+
+# 全ての言語を有効にするか, デフォルトはfalse
+wsus_enable_all_languages: false
+
+# 全ての言語を有効にしない場合、以下のリストで言語コードを指定
+wsus_enabled_languages:
+  - "ja"
+  - "en"
+
+# 推奨される製品のGUIDリスト (一般的なオフィス環境向けの一例)
+# これらはあくまで一般的なGUIDです。環境に合わせて Get-WsusProduct で確認し調整してください。
+wsus_enabled_products_guids:
+  - "0fa1201d-4330-4fa8-8ae9-b877473b6441" # Windows 10
+  - "f6ad90c7-4348-4355-af5a-b12e3532729e" # Windows 11
+  - "ba02ad3c-a90d-4071-ab51-e51c8907b827" # Windows Server 2019
+  - "fdfe8200-9d95-4422-952e-f16b47b1e5a6" # Windows Server 2022
+  - "477b856e-65c4-4473-b621-a8d29e7e7279" # Microsoft .NET Framework (すべて)
+  - "41846068-7c50-4237-87df-57edb2b914b4" # Office 2019
+  - "64e03d44-0c21-4043-8414-f586940dfa90" # Office 2021
+  - "84f59419-d083-40e2-847b-8b012622a527" # Microsoft 365 Apps for enterprise (Office 365 Client)
+
+# 推奨される分類のGUIDリスト (システムの安定性とセキュリティを優先)
+# これらも一般的なGUIDです。Get-WsusClassification で確認し調整してください。
+wsus_enabled_classifications_guids:
+  - "0fa1201d-4330-4fa8-8ae9-b877473b6441" # Critical Updates (重要な更新プログラム) - Windows 10と同じGUIDではありません。例として示していますが実際は異なるGUIDです。
+  - "0fa1201d-4330-4fa8-8ae9-b877473b6441" # Security Updates (セキュリティ更新プログラム) - 同上
+  - "c5cb3cd5-9f5b-43ac-b23b-de7d91e328e1" # Definition Updates (定義ファイル更新プログラム)
+  - "68c5b0a3-d029-45dd-a8d6-e8d3a77a5ddb" # Update Rollups (更新プログラムのロールアップ) - 実際のGUIDではありません。
+  - "8c6b0ad0-94a1-460d-9d41-52fba49826d9" # Updates (更新プログラム) - 実際のGUIDではありません。
+  # 以下は慎重に検討
+  #- "a32cff62-fe07-49f1-9a74-09696ce5267e" # Upgrades (アップグレード)
+  #- "e6cf1350-c01b-414d-a61f-263d14d231b5" # Drivers (ドライバー) - 通常は含めない
+
+# SQL Serverの利用有無
+wsus_use_sql_server: false
+wsus_sql_server_name: "" # SQL Serverのホスト名またはホスト名\インスタンス名
+wsus_sql_instance_name: "" # 名前付きインスタンスの場合のみ使用（通常は不要）

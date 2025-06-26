@@ -1,0 +1,20 @@
+# roles/wsus_server/tasks/prerequisites.yml
+---
+# PowerShell実行ポリシーをRemoteSignedに設定
+- name: Set PowerShell Execution Policy to RemoteSigned
+  ansible.windows.win_powershell:
+    script: Set-ExecutionPolicy RemoteSigned -Force
+
+# WSUS HTTPポート ({{ wsus_http_port }}) のファイアウォールルールを追加
+- name: Add WSUS HTTP Port Firewall Rule
+  ansible.windows.win_firewall_rule:
+    name: WSUS_HTTP_{{ item }}
+    localport: "{{ item }}"
+    action: Allow
+    direction: Inbound
+    protocol: Tcp
+    state: present
+    enabled: yes
+  with_items:
+    - "{{ wsus_http_port }}"
+    - "{{ wsus_https_port }}"

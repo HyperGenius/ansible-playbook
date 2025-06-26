@@ -1,0 +1,36 @@
+# roles/wsus_server/tasks/configure_wsus.yml
+---
+# WSUSコンテンツディレクトリの存在を確認
+- name: Check if WSUS content directory exists
+  ansible.windows.win_stat:
+    path: "{{ wsus_content_dir }}"
+  register: wsus_content_dir_stat
+
+# WSUSインストール後の初期設定を実行 (Invoke-WsusServerConfiguration)
+- name: Install WSUS role and perform initial configuration by powershell script in template
+  ansible.windows.win_powershell:
+    script: "{{ lookup('template', 'wsus_initial_config.ps1.j2') }}"
+  when: wsus_perform_initial_config
+
+# WSUSプロキシサーバー設定を適用
+- name: Configure WSUS proxy settings
+  ansible.windows.win_powershell:
+    script: "{{ lookup('ansible.builtin.template', 'wsus_proxy_config.ps1.j2') }}"
+  when: wsus_perform_initial_config
+  # セキュリティ上の理由から、プロキシパスワードがログに表示されないようにします
+  no_log: true
+
+# WSUSの同期オプションを設定
+- name: Configure WSUS synchronization options
+  ansible.windows.win_powershell:
+    script: "{{ lookup('ansible.builtin.template', 'wsus_sync_options.ps1.j2') }}"
+  when: wsus_perform_initial_config
+
+# WSUSの初期同期を開始, 初期同期は時間がかかるため必要に応じてフラグを設定して実行
+- name: Start initial synchronization
+  ansible.windows.win_powershell:
+    script: |
+      Import-Module UpdateServices
+      $wsus = Get-WsusServer
+      $wsus.CreateSubscription().StartSynchronization()
+  when: wsus_start_initial_sync

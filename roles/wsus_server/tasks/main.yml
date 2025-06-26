@@ -1,0 +1,13 @@
+# roles/wsus_server/tasks/main.yml
+---
+- name: WSUSサーバー構築ロールの開始
+  ansible.builtin.debug:
+    msg: "WSUSサーバー構築を開始します。"
+
+# 前提条件の設定
+- name: Check prerequisites for WSUS server
+  ansible.builtin.include_tasks: 01_prerequisites.yml
+
+# WSUSのインストールと初期設定
+- name: Install WSUS role and perform initial configuration
+  ansible.builtin.include_tasks: 02_install_wsus_role.yml

@@ -1,0 +1,70 @@
+# roles/wsus_server/templates/wsus_sync_options.ps1.j2
+
+<#
+.SYNOPSIS
+    WSUSサーバーの同期オプションを設定します。
+.DESCRIPTION
+    アップストリームサーバー、言語、製品、分類などの同期設定を構成します。
+    Jinja2テンプレートとして、Ansibleから変数を渡して使用します。
+#>
+
+# WSUSモジュールをインポート
+Import-Module UpdateServices
+
+$wsus = Get-WsusServer
+$config = $wsus.GetConfiguration()
+
+Write-Host "WSUS同期オプションを設定します..."
+
+# アップストリームサーバーを設定
+$config.SetConfigurationSetting("UpstreamServerName", "{{ wsus_upstream_server | default('') }}")
+$config.SetConfigurationSetting("UpstreamServerPort", {{ wsus_upstream_port_http | default(80) }})
+$config.SetConfigurationSetting("UpstreamServerSecurePort", {{ wsus_upstream_port_https | default(443) }})
+$config.SetConfigurationSetting("SyncFromMicrosoftUpdate", ${{ wsus_sync_from_microsoft_update | lower }})
+$config.SetConfigurationSetting("Replica", ${{ wsus_is_replica | lower }})
+
+# 同期する言語の設定
+{% if wsus_enable_all_languages %}
+If ($config.AllLanguagesEnabled -ne $true) {
+    Write-Host "全ての言語を有効にします。"
+    $config.EnableAllLanguages()
+}
+{% else %}
+$desiredLanguages = @({{ wsus_enabled_languages | map('to_json') | join(',') | default('') }})
+$currentLanguages = $config.EnabledLanguages
+# 現在の設定とDesiredの設定が異なる場合のみ変更を適用
+If (-not ($desiredLanguages | ForEach-Object { $currentLanguages -contains $_ } | ForEach-Object { $_ -eq $true } -eq $true) -or `
+    ($desiredLanguages.Count -ne $currentLanguages.Count)) {
+    Write-Host "指定された言語 ({{ wsus_enabled_languages | join(',') }}) を有効にします。"
+    $config.SetEnabledLanguages($desiredLanguages)
+}
+{% endif %}
+
+# 同期する製品の設定
+{% if wsus_enabled_products_guids is defined and wsus_enabled_products_guids | length > 0 %}
+$desiredProductsGuids = @({{ wsus_enabled_products_guids | map('to_json') | join(',') | default('') }})
+$currentProductsGuids = ($wsus.GetConfiguration().EnabledProducts | Select-Object -ExpandProperty ProductId | ForEach-Object { $_.Guid.ToString() })
+# 現在の設定とDesiredの設定が異なる場合のみ変更を適用
+If (-not ($desiredProductsGuids | ForEach-Object { $currentProductsGuids -contains $_ } | ForEach-Object { $_ -eq $true } -eq $true) -or `
+    ($desiredProductsGuids.Count -ne $currentProductsGuids.Count)) {
+    Write-Host "指定された製品GUID ({{ wsus_enabled_products_guids | join(',') }}) を有効にします。"
+    $config.SetEnabledProducts($desiredProductsGuids)
+}
+{% endif %}
+
+# 同期する分類の設定
+{% if wsus_enabled_classifications_guids is defined and wsus_enabled_classifications_guids | length > 0 %}
+$desiredClassificationsGuids = @({{ wsus_enabled_classifications_guids | map('to_json') | join(',') | default('') }})
+$currentClassificationsGuids = ($wsus.GetConfiguration().EnabledClassifications | Select-Object -ExpandProperty ClassificationId | ForEach-Object { $_.Guid.ToString() })
+# 現在の設定とDesiredの設定が異なる場合のみ変更を適用
+If (-not ($desiredClassificationsGuids | ForEach-Object { $currentClassificationsGuids -contains $_ } | ForEach-Object { $_ -eq $true } -eq $true) -or `
+    ($desiredClassificationsGuids.Count -ne $currentClassificationsGuids.Count)) {
+    Write-Host "指定された分類GUID ({{ wsus_enabled_classifications_guids | join(',') }}) を有効にします。"
+    $config.SetEnabledClassifications($desiredClassificationsGuids)
+}
+{% endif %}
+
+# 変更を保存
+$config.Save()
+
+Write-Host "WSUS同期オプションの設定が完了しました。"
