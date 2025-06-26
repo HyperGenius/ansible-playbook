@@ -1,0 +1,5 @@
+# ansible-playbook roles/connectivity-test/tests/test.yml -i roles/connectivity-test/tests/inventory
+---
+- hosts: all
+  roles:
+    - role: ../..
