@@ -20,3 +20,8 @@
     body_format: json
     status_code: 201
   register: response
+
+- name: Show response from ServiceNow
+  ansible.builtin.debug:
+    msg: "Incident record created successfully. Response: {{ response.json }}"
+  when: response is defined and response.json is defined

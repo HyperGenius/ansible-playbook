@@ -1,4 +1,4 @@
-# ansible-playbook roles/servicenow/create_incident_record/tests/test.yml -i roles/servicenow/create_incident_record/tests/inventory --vault-password-file .vault_pass.txt
+# ansible-playbook roles/servicenow/manage_incident_record/tests/test-update.yml -i roles/servicenow/manage_incident_record/tests/inventory --vault-password-file .vault_pass.txt
 ---
 - hosts: all
   gather_facts: yes
@@ -6,16 +6,19 @@
     - test_vars/user_input_vars.yml
     - test_vars/exastro_original_vars.yml
     - test_vars/servicenow_credentials.yml
+  vars:
+    action: "update"
+    # NOTE: You need to replace this with a valid sys_id of an existing incident
+    incident_sys_id: "replace_with_actual_incident_sys_id"
 
   pre_tasks:
     - name: Check servicenow servicenow_credentials
       ansible.builtin.assert:
         that:
           - servicenow_instance_url is defined
-          - servicenow_target_table_name is defined
           - servicenow_user is defined
           - servicenow_password is defined
-        fail_msg: "Required ServiceNow Parameters(instance_url, target_table_name, user, password) is not defined or is empty. Please set them in the playbook or inventory."
+        fail_msg: "Required ServiceNow Parameters(instance_url, user, password) is not defined or is empty. Please set them in the playbook or inventory."
 
     # Create incident description file on hosts
     # テスト対象ホスト上にインシデント詳細ファイルを作成する
@@ -33,13 +36,7 @@
   roles:
     - role: ../..
 
-  tasks:
-    # テスト対象ホスト上のインシデント詳細ファイルの内容を取得して表示する
-    - name: Slurp incident description file content
-      ansible.builtin.slurp:
-        src: "{{ remote_filepath_incident_description }}"
-      register: incident_description_file
-
-    - name: Print incident description
+  post_tasks:
+    - name: Show result
       ansible.builtin.debug:
-        msg: "{{ incident_description_file.content | b64decode | from_json | to_nice_json }}"
+        msg: "Update action completed."

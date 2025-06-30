@@ -1,0 +1,38 @@
+---
+# uriモジュールの実行に必要な一時変数を設定
+# servicenow_instance_url: ServiceNowのインスタンスURLを指定, ユーザーにより設定される
+- name: Create Temporary Variable for uri module to update record
+  ansible.builtin.set_fact:
+    _servicenow_api_endpoint: "{{ servicenow_instance_url }}/api/now/table/incident/{{ incident_sys_id }}"
+
+# incident_ticket.j2テンプレートをファイルとして読み込み、変数名を抽出
+- name: Extract variable names from template
+  ansible.builtin.set_fact:
+    _template_vars: "{{ lookup('file', 'incident_ticket.j2') | regex_findall('\{\{\s*(\w+)\s*\}\}') }}"
+
+# リクエストボディを初期化
+- name: Initialize request body
+  ansible.builtin.set_fact:
+    _request_body: {}
+
+# テンプレート内の各変数について、定義されていればリクエストボディに追加
+- name: Build request body from defined variables
+  ansible.builtin.set_fact:
+    _request_body: "{{ _request_body | combine({item: vars[item]}) }}"
+  loop: "{{ _template_vars }}"
+  when: vars[item] is defined
+
+# ServiceNowのインシデントレコードを更新
+- name: Update Incident Record to ServiceNow
+  ansible.builtin.uri:
+    url: "{{ _servicenow_api_endpoint }}"
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+    method: "PATCH"
+    user: "{{ servicenow_user }}"
+    password: "{{ servicenow_password }}"
+    body: "{{ _request_body | to_json }}"
+    body_format: json
+    status_code: 200
+  register: response

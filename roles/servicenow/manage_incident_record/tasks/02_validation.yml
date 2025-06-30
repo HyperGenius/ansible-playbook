@@ -1,0 +1,17 @@
+---
+# 以降のタスクで使用する変数が定義されているか確認
+- name: Check if variables are defined
+  ansible.builtin.assert:
+    that:
+      - servicenow_user is defined
+      - servicenow_password is defined
+      - servicenow_instance_url is defined
+    fail_msg: "Required variables are not defined. Please check your playbook or inventory."
+
+# 'update'または'delete'アクションの場合、incident_sys_idが定義されていることを確認
+- name: Check if incident_sys_id is defined when record_action is 'update' or 'delete'
+  ansible.builtin.assert:
+    that:
+      - incident_sys_id is defined
+    fail_msg: "incident_sys_id must be defined when record_action is 'update' or 'delete'."
+  when: record_action in ['update', 'delete']

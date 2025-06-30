@@ -5,7 +5,6 @@
 servicenow_user: ""
 servicenow_password: ""
 servicenow_instance_url: "https://<instance_id>.service-now.com/"
-servicenow_target_table_name: ""
 
 # Path to the incident description file on the remote server
 # リモートサーバー上に記録されているインシデント詳細ファイルのパス
