@@ -20,16 +20,35 @@ ServiceNOW上のインシデントテーブルにインシデントレコード�
 2. `record_action`の値に応じて、ServiceNOWのインシデントテーブルに対してレコードの作成、更新、または削除を実行します。
 
 ## 想定する使い方
-このロールは、ServiceNowのインシデント管理機能と連携して使用することを想定しています。  
-具体的には、以下のようなシナリオで使用されます：
 
-- システム監視ツールで検出された問題を自動的にServiceNowのインシデントとして登録する
-- 既存のインシデントの状態や担当者を自動で更新する
-- 不要になったインシデントを自動で削除する
-- 定期的なメンテナンス作業をインシデントとして記録する
-- ユーザーからの問い合わせを構造化されたフォーマットでServiceNowに登録する
+このロールは、他のAnsibleロールと連携し、複数のターゲットサーバーにまたがってインシデントを管理することを想定しています。
+
+想定するフローは以下の通りです：
+1. **先行ロールの実行**: 先行する別のAnsibleロール（例: 監視、診断、アプリケーションデプロイなど）がターゲットサーバー上で実行されます。
+2. **インシデント情報の生成**: 先行ロールはその実行結果や検出した問題（例: サービス停止、設定不備）に基づき、インシデント情報をJSONファイルとしてターゲットサーバー上に保存します。このJSONファイルは、`incident_ticket.j2`を具体化したものです。
+3. **本ロールの実行**: `manage_incident_record`ロールが実行され、ターゲットサーバー上に保存されたJSONファイル（`remote_filepath_incident_description`でパスを指定）を読み込みます。
+4. **ServiceNowとの連携**: 読み込んだ情報を使って、ServiceNowにインシデントを起票（作成・更新・削除）します。
+
+これにより、各サーバー固有の状況に基づいたインシデント管理を自動化できます。
+
+### シーケンスの一例: インシデント作成
+
+```mermaid
+sequenceDiagram
+    participant AnsibleController as Ansible Controller
+    participant TargetServer as Target Server
+    participant ServiceNow
+
+    AnsibleController->>TargetServer: 1. 先行ロールを実行
+    TargetServer-->>TargetServer: 2. インシデント情報JSONを生成・保存
+    AnsibleController->>TargetServer: 3. manage_incident_recordロールを実行 (action: create)
+    TargetServer->>AnsibleController: 4. インシデント情報JSONを読み込む
+    AnsibleController->>ServiceNow: 5. REST API (POST) でインシデント作成をリクエスト
+    ServiceNow-->>AnsibleController: 6. 作成されたインシデント情報を返す
+```
 
 ## 前提条件
+
 - インシデント詳細ファイルと`incident_ticket.j2`が一対一になっている
   - `incident_ticket.j2`のキー名とインシデントテーブルのフィールド名は一致している必要があります
 
