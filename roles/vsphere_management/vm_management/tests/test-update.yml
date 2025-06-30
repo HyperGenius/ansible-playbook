@@ -1,0 +1,14 @@
+# ansible-playbook roles/vsphere_management/vm_management/tests/test-update.yml
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  vars_files:
+    - test_vars/vcenter_credentials.yml
+    - test_vars/test_update_vars.yml
+
+  vars:
+    vm_action: "update"
+
+  roles:
+    - role: ../..

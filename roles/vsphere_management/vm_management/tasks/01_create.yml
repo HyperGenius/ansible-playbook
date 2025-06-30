@@ -1,0 +1,51 @@
+---
+# vm_os_familyの値に応じてVMテンプレート名を設定
+- name: Set VM template based on OS family
+  ansible.builtin.set_fact:
+    vm_template: "{{ vm_template_redhat if vm_os_family == 'RedHat' else vm_template_windows }}"
+
+# OSファミリーに応じてVMのドメインとDNSサーバーを設定
+- name: Set customization spec based on OS family
+  ansible.builtin.set_fact:
+    customization_spec:
+      RedHat:
+        domain: "{{ vm_domain }}"
+        dns_servers: "{{ vm_dns_servers }}"
+      Windows:
+        domain: "{{ vm_domain }}"
+        dns_servers: "{{ vm_dns_servers }}"
+
+# テンプレートから仮想マシンをクローンしてカスタマイズ
+- name: Clone and customize virtual machine from template
+  community.vmware.vmware_guest:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: "{{ vcenter_validate_certs }}"
+    datacenter: "{{ vm_datacenter }}"
+    cluster: "{{ vm_cluster }}"
+    folder: "{{ vm_folder }}"
+    name: "{{ vm_name }}"
+    template: "{{ vm_template }}"
+    state: poweredon
+    hardware:
+      num_cpus: "{{ vm_cpu_cores }}"
+      memory_mb: "{{ vm_memory_mb }}"
+    disk:
+      - size_gb: "{{ vm_disk_size_gb }}"
+        type: thin
+        datastore: "{{ vm_datastore | default(omit) }}"
+    networks:
+      - name: "{{ vm_network_portgroup }}"
+        ip: "{{ vm_ip_address }}"
+        netmask: "{{ vm_netmask }}"
+        gateway: "{{ vm_gateway }}"
+        device_type: vmxnet3
+    customization: "{{ customization_spec[vm_os_family] }}"
+    wait_for_ip_address: yes
+  register: vm_provision_result
+
+# 仮想マシンのプロビジョニング結果を表示
+- name: Show VM provisioning result
+  ansible.builtin.debug:
+    var: vm_provision_result

@@ -1,0 +1,14 @@
+---
+# --- 必須変数 ---
+vm_name: "ansible-test-vm"
+vm_datacenter: "your_datacenter"
+
+# --- 更新対象のプロパティ ---
+# NOTE: VMは更新前にパワーオフしておく必要があります
+vm_cpu_cores: 4
+vm_memory_mb: 8192
+
+# --- 任意変数 (必要に応じて設定) ---
+# vm_cpu_cores_per_socket: 2
+# vm_max_connections: 10
+# vm_notes: "Updated by Ansible"

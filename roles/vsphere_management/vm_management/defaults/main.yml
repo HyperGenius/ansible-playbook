@@ -1,0 +1,39 @@
+---
+# VM Action: create, update, delete
+vm_action: "create"
+
+# vCenter認証情報, パラメータシート作成用に記載
+# 実際に使用する場合は別ファイルにしてansible-vaultで暗号化してください
+vcenter_hostname: ""
+vcenter_username: ""
+vcenter_password: ""
+vcenter_validate_certs: false
+
+# VM設定, 必要に応じてansible-vaultで暗号化してください
+vm_name: "new-vm"
+vm_os_family: "RedHat"  # "RedHat" or "Windows"
+vm_datacenter: "your_datacenter"
+vm_cluster: "your_cluster"
+vm_folder: "/vm"
+vm_notes: "Provisioned by Ansible"
+
+# VMリソース設定
+vm_cpu_cores: 2
+vm_memory_mb: 4096
+vm_disk_size_gb: 50
+
+# VMネットワーク設定, 必要に応じてansible-vaultで暗号化してください
+vm_network_portgroup: "your_portgroup_name"
+vm_ip_address: "192.168.1.100"
+vm_netmask: "255.255.255.0"
+vm_gateway: "192.168.1.1"
+vm_dns_servers:
+  - "8.8.8.8"
+  - "8.8.4.4"
+
+# VMテンプレート設定, それぞれのOSに応じて設定
+vm_template_redhat: "template-redhat"
+vm_template_windows: "template-windows"
+
+# VMドメイン設定, 必要に応じてansible-vaultで暗号化してください
+vm_domain: "localdomain"

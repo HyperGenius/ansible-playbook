@@ -1,0 +1,8 @@
+---
+# --- 必須変数 ---
+vm_name: "ansible-test-vm"
+vm_datacenter: "your_datacenter"
+
+# --- 削除オプション ---
+# force_delete: true  # 強制削除フラグ（必要に応じて設定）
+# remove_from_inventory: true  # インベントリからも削除

@@ -1,0 +1,14 @@
+# ansible-playbook roles/vsphere_management/vm_management/tests/test-create.yml
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  vars_files:
+    - test_vars/vcenter_credentials.yml
+    - test_vars/test_create_vars.yml
+
+  vars:
+    vm_action: "create"
+
+  roles:
+    - role: ../..

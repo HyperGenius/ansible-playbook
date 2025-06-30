@@ -1,0 +1,23 @@
+---
+# バリデーションの通過を確認
+- name: Check if VM validation passed
+  ansible.builtin.fail:
+    msg: "VM validation failed. Ensure the VM is powered off and all required parameters are set."
+  when: not validation_ok | default(false)
+
+# VMを論理削除
+- name: Delete VM from vSphere inventory (disks are not removed)
+  community.vmware.vmware_guest:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: "{{ vcenter_validate_certs }}"
+    datacenter: "{{ vm_datacenter }}"
+    name: "{{ vm_name }}"
+    state: absent
+  register: vm_delete_result
+
+# VMの論理削除結果を表示
+- name: Show VM deletion result
+  ansible.builtin.debug:
+    var: vm_delete_result
