@@ -16,8 +16,10 @@
     name: "{{ vm_name }}"
     state: absent
   register: vm_delete_result
+  when: not ansible_check_mode
 
 # VMの論理削除結果を表示
 - name: Show VM deletion result
   ansible.builtin.debug:
     var: vm_delete_result
+  when: not ansible_check_mode

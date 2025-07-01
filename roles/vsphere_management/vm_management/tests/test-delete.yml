@@ -1,6 +1,6 @@
 # ansible-playbook roles/vsphere_management/vm_management/tests/test-delete.yml
 ---
-- hosts: all  # or specific host groups
+- hosts: localhost
   gather_facts: no
   vars_files:
     - test_vars/vcenter_credentials.yml

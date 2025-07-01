@@ -1,5 +1,6 @@
 ---
 # --- 必須変数 ---
+vcenter_number: 1
 vm_name: "ansible-test-vm"
 vm_datacenter: "your_datacenter"
 

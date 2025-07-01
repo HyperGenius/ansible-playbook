@@ -28,8 +28,10 @@
         netmask: "{{ vm_eth0_netmask | default(omit) }}"
         gateway: "{{ vm_eth0_gateway | default(omit) }}"
   register: vm_update_result
+  when: not ansible_check_mode
 
 # VMの更新結果を表示
 - name: Show VM update result
   ansible.builtin.debug:
     var: vm_update_result
+  when: not ansible_check_mode

@@ -8,6 +8,7 @@
     msg: "VM name must be defined and not empty."
 
 # 指定されたVM名の情報を取得
+# VM名がユニークでない場合は最初のVMを取得
 - name: Get VM information
   community.vmware.vmware_guest_info:
     hostname: "{{ vcenter_hostname }}"
@@ -17,10 +18,13 @@
     datacenter: "{{ vm_datacenter }}"
     name: "{{ vm_name }}"
   register: vm_result
+  when: not ansible_check_mode
 
-# vm_id, folder, eth0のMACアドレスを設定
+# vm_id, folder, 電源状態, eth0のMACアドレス(ダッシュ区切り)を設定
 - name: Set VM ID and folder
   ansible.builtin.set_fact:
-    vm_id: "{{ vm_result.instance.vm }}"
-    vm_folder: "{{ vm_result.instance.folder }}"
-    eth0_mac_address: "{{ vm_result.instance.hw_eth0.macaddress }}"
+    vm_id: "{{ vm_result.moid }}"
+    vm_folder: "{{ vm_result.hw_folder }}"
+    vm_power_state: "{{ vm_result.hw_power_status }}"
+    eth0_mac_address: "{{ vm_result.hw_eth0.macaddress_dash }}"
+  when: not ansible_check_mode

@@ -1,28 +1,18 @@
 ---
 # 指定されたVMの状態をチェックしてvm_infoに保存
 - name: Gather VM info to check power state
-  community.vmware.vmware_guest_info:
-    hostname: "{{ vcenter_hostname }}"
-    username: "{{ vcenter_username }}"
-    password: "{{ vcenter_password }}"
-    validate_certs: "{{ vcenter_validate_certs }}"
-    datacenter: "{{ vm_datacenter }}"
-    name: "{{ vm_name }}"
-  register: vm_info
-
-# VMが存在しない場合はエラー出力して終了
-- name: Fail if VM does not exist
-  ansible.builtin.fail:
-    msg: "VM '{{ vm_name }}' not found."
-  when: vm_info.virtual_machines | length == 0
+  include_tasks: get-vm-info/get-id-folder-eth0-by-vm-name.yml
 
 # VMが電源オンの状態でない場合はエラー出力して終了
 - name: Fail if VM is not powered off
   ansible.builtin.fail:
     msg: "VM '{{ vm_name }}' must be powered off for this operation."
-  when: vm_info.virtual_machines[0].power_state != 'poweredOff'
+  when:
+    - not ansible_check_mode
+    - vm_power_state != 'poweredOff'
 
 # 正常にVMの状態を取得できた場合はvalidation_okをtrueに設定
+# チェックモードでは常にtrueに設定
 - name: Set validation_ok to true
   ansible.builtin.set_fact:
     validation_ok: true
