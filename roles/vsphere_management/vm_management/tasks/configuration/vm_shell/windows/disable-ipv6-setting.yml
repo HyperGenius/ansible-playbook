@@ -1,0 +1,40 @@
+---
+# VM名、VM ID、MACアドレスが定義されていることを確認
+- name: Validate VM parameters
+  ansible.builtin.assert:
+    that:
+      - vm_id is defined
+      - vm_folder is defined
+      - mac_address is defined
+    msg: "VM ID and MAC address must be defined for disabling IPv6"
+
+# VMログイン情報が定義されていることを確認
+- name: Validate VM login credentials
+  ansible.builtin.assert:
+    that:
+      - vm_username is defined
+      - vm_password is defined
+    msg: "VM username and password must be defined for executing PowerShell commands"
+
+# eth0のMACアドレスをpowershellスクリプトで使用するために変換
+- name: Get MAC address of eth0
+  ansible.builtin.set_fact:
+    mac_address: "{{ vm_result.instance.hw_eth0.macaddress | replace(':', '-') | upper }}"
+
+# Powershellスクリプトを使用してWindows VMのIPv6を無効化するタスク
+- name: Disable IPv6 on Windows VM
+  community.vmware.vmware_vm_shell:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: "{{ vcenter_validate_certs }}"
+    folder: "{{ vm_folder }}"
+    vm_id: "{{ vm_id }}"
+    vm_username: "{{ vm_username }}"
+    vm_password: "{{ vm_password }}"
+    wait_for_process: true
+    vm_shell: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+    vm_shell_args: >-
+      -c "&{
+        lookup('template', 'disable_ipv6_script.ps1.j2',)
+      }"

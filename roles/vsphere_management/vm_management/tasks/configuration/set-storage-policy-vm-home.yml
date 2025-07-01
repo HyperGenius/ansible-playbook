@@ -1,0 +1,21 @@
+---
+# ストレージポリシーが設定されていることを確認
+- name: Ensure storage policy is set for the VM
+  ansible.builtin.assert:
+    that:
+      - vm_name is defined
+      - vm_storage_policy is defined
+      - vm_storage_policy != ''
+    msg: "Storage policy must be defined and not empty when creating or updating a VM."
+
+# VMストレージポリシーの設定
+- name: Set storage policy for the VM home disk
+  community.vmware.vmware_guest_storage_policy:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: "{{ vcenter_validate_certs }}"
+    datacenter: "{{ vm_datacenter }}"
+    name: "{{ vm_name }}"
+    vm_home: "{{ vm_storage_policy }}"
+  delegate_to: localhost

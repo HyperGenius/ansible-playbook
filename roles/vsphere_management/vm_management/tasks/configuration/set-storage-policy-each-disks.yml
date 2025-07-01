@@ -1,0 +1,34 @@
+---
+# ストレージポリシーが設定されていることを確認
+- name: Ensure storage policy is set for the VM
+  ansible.builtin.assert:
+    that:
+      - vm_name is defined
+      - vm_disks is defined
+    msg: "vm_name and list of VM disks must be defined for setting storage policies."
+
+# vm_disksでcontroller_number, unit_number, policy_nameが定義されていることを確認
+- name: Ensure each VM disk has controller_number, unit_number, and policy_name defined
+  ansible.builtin.assert:
+    that:
+      - item.controller_number is defined
+      - item.unit_number is defined
+      - item.policy_name is defined
+    msg: "Each VM disk must have controller_number, unit_number, and policy_name defined."
+  with_items: "{{ vm_disks }}"
+
+# ディスク単位でVMストレージポリシーの設定
+- name: Set storage policy for each VM disks
+  community.vmware.vmware_guest_storage_policy:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: "{{ vcenter_validate_certs }}"
+    datacenter: "{{ vm_datacenter }}"
+    name: "{{ vm_name }}"
+    disk:
+      - controller_number: "{{ item.controller_number }}"
+        unit_number: "{{ item.unit_number }}"
+        policy_name: "{{ item.policy_name }}"
+    with_items: "{{ vm_disks }}"
+    delegate_to: localhost

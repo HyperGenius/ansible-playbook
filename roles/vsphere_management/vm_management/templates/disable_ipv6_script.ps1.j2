@@ -1,0 +1,9 @@
+{% if remote_log_file_fullpath is defined and remote_log_file_fullpath %}
+Start-Transcript '{{ remote_log_file_fullpath }}';
+{% endif %}
+$netAdapter = Get-NetAdapter | Where-Object { $_.MacAddress -eq '{{ mac_address }}' };
+Disable-NetAdapterBinding -Name $netAdapter.Name -ComponentId ms_tcpip6;
+Get-NetAdapterBinding -Name $netAdapter.Name -ComponentId ms_tcpip6;
+{% if remote_log_file_fullpath is defined and remote_log_file_fullpath %}
+Stop-Transcript;
+{% endif %}

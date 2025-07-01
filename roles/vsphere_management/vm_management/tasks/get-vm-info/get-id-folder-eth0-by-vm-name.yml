@@ -1,0 +1,26 @@
+---
+# VM名が定義されていることを確認
+- name: Validate VM name
+  ansible.builtin.assert:
+    that:
+      - vm_name is defined
+      - vm_name != ''
+    msg: "VM name must be defined and not empty."
+
+# 指定されたVM名の情報を取得
+- name: Get VM information
+  community.vmware.vmware_guest_info:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: "{{ vcenter_validate_certs }}"
+    datacenter: "{{ vm_datacenter }}"
+    name: "{{ vm_name }}"
+  register: vm_result
+
+# vm_id, folder, eth0のMACアドレスを設定
+- name: Set VM ID and folder
+  ansible.builtin.set_fact:
+    vm_id: "{{ vm_result.instance.vm }}"
+    vm_folder: "{{ vm_result.instance.folder }}"
+    eth0_mac_address: "{{ vm_result.instance.hw_eth0.macaddress }}"

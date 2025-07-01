@@ -20,13 +20,18 @@ vm_notes: "Provisioned by Ansible"
 # VMリソース設定
 vm_cpu_cores: 2
 vm_memory_mb: 4096
-vm_disk_size_gb: 50
+vm_os_disk_size_gb: 50
+vm_os_disk_type: "thin"  # "thin" or "thick"
+vm_os_disk_datastore: omit  # デフォルトのデータストアを使用する場合はomitを指定
+
+# VM電源状態
+vm_power_state: "poweredOn"  # "poweredOn", "poweredOff", "suspended"
 
 # VMネットワーク設定, 必要に応じてansible-vaultで暗号化してください
-vm_network_portgroup: "your_portgroup_name"
-vm_ip_address: "192.168.1.100"
-vm_netmask: "255.255.255.0"
-vm_gateway: "192.168.1.1"
+vm_eth0_network_portgroup: "your_portgroup_name"
+vm_eth0_ip_address: "192.168.1.100"
+vm_eth0_netmask: "255.255.255.0"
+vm_eth0_gateway: "192.168.1.1"
 vm_dns_servers:
   - "8.8.8.8"
   - "8.8.4.4"
@@ -37,3 +42,9 @@ vm_template_windows: "template-windows"
 
 # VMドメイン設定, 必要に応じてansible-vaultで暗号化してください
 vm_domain: "localdomain"
+
+
+# 詳細設定, パラメータシートは別にした方が良い
+vm_cpu_reservation: 0  # CPU予約 (0は予約なし)
+mem_reservation: 0     # メモリ予約 (0は予約なし)
+mem_limit: 0           # メモリ制限 (設定しない場合はomitを使用)
