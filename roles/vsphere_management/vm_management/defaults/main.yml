@@ -1,50 +1,44 @@
 ---
 # VM Action: create, update, delete
-vm_action: "create"
+vm_action: ""
 
-# vCenter認証情報, パラメータシート作成用に記載
-# 実際に使用する場合は別ファイルにしてansible-vaultで暗号化してください
-vcenter_hostname: ""
-vcenter_username: ""
-vcenter_password: ""
-vcenter_validate_certs: false
+# vCenterサーバーの号機
+vcenter_number: 
 
 # VM設定, 必要に応じてansible-vaultで暗号化してください
-vm_name: "new-vm"
-vm_os_family: "RedHat"  # "RedHat" or "Windows"
-vm_datacenter: "your_datacenter"
-vm_cluster: "your_cluster"
-vm_folder: "/vm"
+vm_name: 
+vm_os_family:  # "RedHat" or "Windows"
+vm_datacenter: 
+vm_cluster: 
+vm_folder: 
 vm_notes: "Provisioned by Ansible"
 
 # VMリソース設定
-vm_cpu_cores: 2
-vm_memory_mb: 4096
-vm_os_disk_size_gb: 50
-vm_os_disk_type: "thin"  # "thin" or "thick"
-vm_os_disk_datastore: omit  # デフォルトのデータストアを使用する場合はomitを指定
+vm_cpu_cores: 
+vm_memory_mb: 
+vm_os_disk_size_gb: 
+vm_os_disk_type:   # "thin" or "thick"
+vm_os_disk_datastore:   # デフォルトのデータストアを使用する場合はomitを指定
 
 # VM電源状態
-vm_power_state: "poweredOn"  # "poweredOn", "poweredOff", "suspended"
+vm_power_state:  # "poweredOn", "poweredOff", "suspended"
 
 # VMネットワーク設定, 必要に応じてansible-vaultで暗号化してください
-vm_eth0_network_portgroup: "your_portgroup_name"
-vm_eth0_ip_address: "192.168.1.100"
-vm_eth0_netmask: "255.255.255.0"
-vm_eth0_gateway: "192.168.1.1"
+vm_eth0_network_portgroup: 
+vm_eth0_ip_address: 
+vm_eth0_netmask: 
+vm_eth0_gateway: 
 vm_dns_servers:
-  - "8.8.8.8"
-  - "8.8.4.4"
 
 # VMテンプレート設定, それぞれのOSに応じて設定
-vm_template_redhat: "template-redhat"
-vm_template_windows: "template-windows"
+vm_template_name: 
 
 # VMドメイン設定, 必要に応じてansible-vaultで暗号化してください
-vm_domain: "localdomain"
+vm_domain: 
 
-
-# 詳細設定, パラメータシートは別にした方が良い
-vm_cpu_reservation: 0  # CPU予約 (0は予約なし)
-mem_reservation: 0     # メモリ予約 (0は予約なし)
-mem_limit: 0           # メモリ制限 (設定しない場合はomitを使用)
+# --- 詳細設定 ---
+# パラメータシートは別にした方が良い
+vm_cpu_reservation: False
+vm_memory_reservation: False
+vm_memory_limit: False
+vm_eth0_device_type: False

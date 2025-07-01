@@ -19,14 +19,14 @@
       num_cpus: "{{ vm_cpu_cores | default(omit) }}"
       memory_mb: "{{ vm_memory_mb | default(omit) }}"
     disk:
-      - size_gb: "{{ vm_disk_size_gb | default(omit) }}"
+      - size_gb: "{{ vm_os_disk_size_gb | default(omit) }}"
         state: present
-        type: thin
+        type: "{{ vm_os_disk_type | default('thin') }}"
     networks:
-      - name: "{{ vm_network_portgroup }}"
-        ip: "{{ vm_ip_address | default(omit) }}"
-        netmask: "{{ vm_netmask | default(omit) }}"
-        gateway: "{{ vm_gateway | default(omit) }}"
+      - name: "{{ vm_eth0_network_portgroup }}"
+        ip: "{{ vm_eth0_ip_address | default(omit) }}"
+        netmask: "{{ vm_eth0_netmask | default(omit) }}"
+        gateway: "{{ vm_eth0_gateway | default(omit) }}"
   register: vm_update_result
 
 # VMの更新結果を表示

@@ -12,8 +12,8 @@
 - name: Validate VM login credentials
   ansible.builtin.assert:
     that:
-      - vm_username is defined
-      - vm_password is defined
+      - vm_template_username is defined
+      - vm_template_windows_admin_password is defined
     msg: "VM username and password must be defined for executing PowerShell commands"
 
 # eth0のMACアドレスをpowershellスクリプトで使用するために変換
@@ -30,8 +30,8 @@
     validate_certs: "{{ vcenter_validate_certs }}"
     folder: "{{ vm_folder }}"
     vm_id: "{{ vm_id }}"
-    vm_username: "{{ vm_username }}"
-    vm_password: "{{ vm_password }}"
+    vm_username: "{{ vm_template_username }}"
+    vm_password: "{{ vm_template_windows_admin_password }}"
     wait_for_process: true
     vm_shell: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
     vm_shell_args: >-

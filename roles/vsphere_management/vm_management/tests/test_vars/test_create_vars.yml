@@ -1,15 +1,41 @@
 ---
+vm_action: "create"
+
 # --- 必須変数 ---
+vcenter_number: 1
 vm_name: "ansible-test-vm"
 vm_os_family: "RedHat" # or "Windows"
 vm_datacenter: "your_datacenter"
 vm_cluster: "your_cluster"
-vm_template_redhat: "template-redhat"
-vm_template_windows: "template-windows"
-vm_network_portgroup: "your_portgroup_name"
-# --- 任意変数 ---
-vm_ip_address: "192.168.1.123"
-vm_netmask: "255.255.255.0"
-vm_gateway: "192.168.1.1"
+vm_folder: "/vm"
+
+# VMテンプレート設定
+vm_template_name: "redhat"  # vars/vm-template-<template_name>-credentials.ymlファイルの<template_name>部分
+
+# VMリソース設定
+vm_cpu_cores: 2
+vm_memory_mb: 4096
+vm_os_disk_size_gb: 50
+vm_os_disk_type: "thin"
+
+# VMネットワーク設定
+vm_eth0_network_portgroup: "your_portgroup_name"
+vm_eth0_ip_address: "192.168.1.123"
+vm_eth0_netmask: "255.255.255.0"
+vm_eth0_gateway: "192.168.1.1"
+vm_eth0_device_type: "vmxnet3"
+
+# DNS・ドメイン設定
 vm_dns_servers:
   - "8.8.8.8"
+  - "8.8.4.4"
+vm_domain: "localdomain"
+
+# VM電源状態
+vm_power_state: "poweredon"
+
+# --- 任意の詳細設定 ---
+# vm_cpu_reservation: 1000
+# vm_memory_reservation: 2048
+# vm_memory_limit: 8192
+# vm_os_disk_datastore: "your_datastore"

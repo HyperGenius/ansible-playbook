@@ -7,6 +7,13 @@ vm_datacenter: "your_datacenter"
 # NOTE: VMは更新前にパワーオフしておく必要があります
 vm_cpu_cores: 4
 vm_memory_mb: 8192
+vm_os_disk_size_gb: 100
+
+# --- ネットワーク設定の更新（必要に応じて） ---
+# vm_eth0_network_portgroup: "new_portgroup_name"
+# vm_eth0_ip_address: "192.168.1.124"
+# vm_eth0_netmask: "255.255.255.0"
+# vm_eth0_gateway: "192.168.1.1"
 
 # --- 任意変数 (必要に応じて設定) ---
 # vm_cpu_cores_per_socket: 2

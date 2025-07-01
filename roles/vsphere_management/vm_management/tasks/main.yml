@@ -1,28 +1,34 @@
 ---
-# tasks file for vsphere_management/vm_management
-
 # vm_actionが定義されていることの確認
 - name: Validate vm_action variable
   ansible.builtin.fail:
     msg: "vm_action must be one of 'create', 'update', or 'delete'."
   when: vm_action not in ['create', 'update', 'delete']
 
-# VM作成
-- name: Create VM
-  ansible.builtin.include_tasks: 01_create.yml
-  when: vm_action == 'create'
+# All vSphere API tasks need to be delegated to localhost
+- name: Execute vSphere management tasks
+  block:
+    # 認証情報の読み込み
+    - name: Load vCenter credentials
+      ansible.builtin.include_tasks: 01_load_credentials.yml
 
-# VM更新/削除の場合はVM状態を確認
-- name: Update or delete VM
-  ansible.builtin.include_tasks: 02_validation.yml
-  when: vm_action in ['update', 'delete']
+    # VM作成
+    - name: Create VM
+      ansible.builtin.include_tasks: 02_create.yml
+      when: vm_action == 'create'
 
-# VM更新
-- name: Update VM
-  ansible.builtin.include_tasks: 03_update.yml
-  when: vm_action == 'update'
+    # VM更新/削除の場合はVM状態を確認
+    - name: Update or delete VM
+      ansible.builtin.include_tasks: 03_validation.yml
+      when: vm_action in ['update', 'delete']
 
-# VMを論理削除
-- name: Delete VM 
-  ansible.builtin.include_tasks: 04_logical_delete.yml
-  when: vm_action == 'delete'
+    # VM更新
+    - name: Update VM
+      ansible.builtin.include_tasks: 04_update.yml
+      when: vm_action == 'update'
+
+    # VMを論理削除
+    - name: Delete VM 
+      ansible.builtin.include_tasks: 05_logical_delete.yml
+      when: vm_action == 'delete'
+  delegate_to: localhost

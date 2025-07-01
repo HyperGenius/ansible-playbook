@@ -1,8 +1,19 @@
 ---
-# vm_os_familyの値に応じてVMテンプレート名を設定
-- name: Set VM template based on OS family
-  ansible.builtin.set_fact:
-    vm_template: "{{ vm_template_redhat if vm_os_family == 'RedHat' else vm_template_windows }}"
+# 必須パラメータ定義の確認
+- name: Check required parameters
+  ansible.builtin.assert:
+    that:
+      - vm_name is defined
+      - vm_os_family in ['RedHat', 'Windows']
+      - vm_datacenter is defined
+      - vm_cluster is defined
+      - vm_folder is defined
+      - vm_template_name is defined
+      - vm_eth0_network_portgroup is defined
+      - vm_eth0_ip_address is defined
+      - vm_eth0_netmask is defined
+      - vm_eth0_gateway is defined
+    fail_msg: "Required parameters are missing or invalid."
 
 # OSファミリーに応じてVMのドメインとDNSサーバーを設定
 - name: Set customization spec based on OS family
@@ -14,6 +25,7 @@
       Windows:
         domain: "{{ vm_domain }}"
         dns_servers: "{{ vm_dns_servers }}"
+        password: "{{ vm_windows_admin_password | default(omit) }}"
 
 # テンプレートから仮想マシンをクローンしてカスタマイズ
 - name: Clone and customize virtual machine from template
@@ -26,8 +38,8 @@
     cluster: "{{ vm_cluster }}"
     folder: "{{ vm_folder }}"
     name: "{{ vm_name }}"
-    template: "{{ vm_template }}"
-    state: "{{ vm_power_state | default('poweredOn') }}"
+    template: "{{ vm_template_name }}"
+    state: "{{ vm_power_state | default('poweredon') }}"
     hardware:
       num_cpus: "{{ vm_cpu_cores }}"
       memory_mb: "{{ vm_memory_mb }}"
@@ -45,11 +57,13 @@
         netmask: "{{ vm_eth0_netmask }}"
         gateway: "{{ vm_eth0_gateway }}"
         device_type: "{{ vm_eth0_device_type | default('vmxnet3') }}"
-    customization: "{{ customization_spec[vm_os_family] }}"
+    customization: "{{ customization_spec[vm_os_family] | default(omit) }}"
     wait_for_ip_address: yes
   register: vm_provision_result
+  when: not ansible_check_mode
 
 # 仮想マシンのプロビジョニング結果を表示
 - name: Show VM provisioning result
   ansible.builtin.debug:
     var: vm_provision_result
+  when: vm_provision_result is defined
