@@ -1,0 +1,111 @@
+---
+# VMのディスク情報を表示するための共通タスク
+
+# 現在のVMディスク情報を取得
+- name: Get VM disk information for display
+  community.vmware.vmware_guest_info:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: "{{ vcenter_validate_certs }}"
+    datacenter: "{{ vm_datacenter }}"
+    name: "{{ vm_name }}"
+  register: vm_disk_info
+  when: not ansible_check_mode
+
+# VMディスク情報からOSディスク情報を抽出
+- name: Extract OS disk information from VM info
+  ansible.builtin.set_fact:
+    extracted_os_disk_size: >-
+      {{
+        vm_disk_info.instance.hw_memtotal_mb | default(0)
+        if false
+        else 0
+      }}
+    extracted_os_disk_type: "{{ vm_os_disk_type | default('thin') }}"
+    extracted_os_disk_datastore: "{{ vm_os_disk_datastore | default('current') }}"
+  when: 
+    - not ansible_check_mode
+    - vm_disk_info is defined
+
+# 利用可能なディスク情報を表示
+- name: Debug available VM disk information
+  ansible.builtin.debug:
+    msg:
+      - "=== Debug: Available VM Disk Information ==="
+      - "VM Guest Info keys: {{ vm_disk_info.instance.keys() | list }}"
+      - "Hardware files: {{ vm_disk_info.instance.hw_files | default('Not available') }}"
+      - "VM Power Status: {{ vm_disk_info.instance.hw_power_status | default('Unknown') }}"
+  when: 
+    - not ansible_check_mode
+    - vm_disk_info is defined
+    - vm_debug_disk_info | default(false)
+
+# 現在のディスク設定情報を表示
+- name: Display current disk configuration
+  ansible.builtin.debug:
+    msg:
+      - "=== Current VM Disk Configuration ==="
+      - "VM Name: {{ vm_name }}"
+      - "Current OS Disk Size: {{ extracted_os_disk_size | default('Unknown') }} GB"
+      - "Current OS Disk Type: {{ extracted_os_disk_type | default('Unknown') }}"
+      - "Current OS Disk Datastore: {{ extracted_os_disk_datastore | default('Unknown') }}"
+      - "VM Power Status: {{ vm_disk_info.instance.hw_power_status | default('Unknown') if vm_disk_info is defined else 'Unknown' }}"
+  when: 
+    - not ansible_check_mode
+    - vm_disk_info is defined
+    - display_current_config | default(true)
+
+# 要求されたディスク設定との比較表示
+- name: Display requested vs current disk configuration
+  ansible.builtin.debug:
+    msg:
+      - "=== Disk Configuration Comparison ==="
+      - "Current Size: {{ extracted_os_disk_size | default('Unknown') }} GB → Requested Size: {{ vm_os_disk_size_gb | default('Not specified') }} GB"
+      - "Current Type: {{ extracted_os_disk_type | default('Unknown') }} → Requested Type: {{ vm_os_disk_type | default(extracted_os_disk_type) | default('thin') }}"
+      - "Current Datastore: {{ extracted_os_disk_datastore | default('Unknown') }} → Requested Datastore: {{ vm_os_disk_datastore | default(extracted_os_disk_datastore) | default('keep current') }}"
+  when: 
+    - not ansible_check_mode
+    - vm_disk_info is defined
+    - display_comparison | default(false)
+    - vm_os_disk_size_gb is defined
+
+# 変更後のディスク情報表示（更新後に呼び出される）
+- name: Display updated disk configuration
+  ansible.builtin.debug:
+    msg:
+      - "=== Updated VM Disk Configuration ==="
+      - "VM Name: {{ vm_name }}"
+      - "Updated Disk Details: {{ vm_disk_info.instance.hw_files | default('No disk info available') }}"
+      - "Total Disks: {{ vm_disk_info.instance.hw_files | length if vm_disk_info.instance.hw_files is defined else 'Unknown' }}"
+  when: 
+    - not ansible_check_mode
+    - vm_disk_info is defined
+    - display_updated_config | default(false)
+
+# 追加ディスク情報の表示（データディスク管理用）
+- name: Display additional disks information
+  ansible.builtin.debug:
+    msg:
+      - "=== Additional Disks Configuration ==="
+      - "Number of Additional Disks: {{ vm_additional_disks | length if vm_additional_disks is defined else 0 }}"
+      - "Additional Disks Details:"
+      - "{{ vm_additional_disks | to_nice_yaml if vm_additional_disks is defined else 'None configured' }}"
+  when: 
+    - display_additional_disks | default(false)
+    - vm_additional_disks is defined
+
+# ディスク操作のサマリー表示
+- name: Display disk operation summary
+  ansible.builtin.debug:
+    msg:
+      - "=== Disk Operation Summary ==="
+      - "VM Name: {{ vm_name }}"
+      - "Operation Type: {{ disk_operation_type | default('Update') }}"
+      - "Previous Size: {{ extracted_os_disk_size | default('Unknown') }} GB"
+      - "Target Size: {{ vm_os_disk_size_gb | default('Not specified') }} GB"
+      - "Disk Type: {{ vm_os_disk_type | default(extracted_os_disk_type) | default('thin') }}"
+      - "Datastore: {{ vm_os_disk_datastore | default(extracted_os_disk_datastore) | default('unchanged') }}"
+      - "Status: {{ disk_operation_status | default('Pending') }}"
+  when: 
+    - display_summary | default(false)

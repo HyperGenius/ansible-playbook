@@ -1,0 +1,65 @@
+---
+# VMの計算リソース（CPU、メモリ）を変更するタスク
+
+# バリデーションチェック
+- name: Validate VM compute resource parameters
+  ansible.builtin.assert:
+    that:
+      - vm_name is defined and vm_name | length > 0
+      - vm_cpu_cores is defined or vm_memory_mb is defined
+      - vm_cpu_cores is number when vm_cpu_cores is defined
+      - vm_memory_mb is number when vm_memory_mb is defined
+    fail_msg: "VM name and at least one compute resource parameter (cpu_cores or memory_mb) must be defined"
+    success_msg: "VM compute resource parameters validation passed"
+
+# CPUとメモリの変更(変更前の情報は取得しない)
+- name: Update VM compute resources (CPU and Memory)
+  community.vmware.vmware_guest:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: "{{ vcenter_validate_certs }}"
+    datacenter: "{{ vm_datacenter }}"
+    name: "{{ vm_name }}"
+    state: present
+    hardware:
+      num_cpus: "{{ vm_cpu_cores if vm_cpu_cores is not none else omit }}"
+      memory_mb: "{{ vm_memory_mb if vm_memory_mb is not none else omit }}"
+      memory_reservation: "{{ vm_memory_reservation if vm_memory_reservation is not none else omit }}"
+      cpu_reservation: "{{ vm_cpu_reservation if vm_cpu_reservation is not none else omit }}"
+      memory_limit: "{{ vm_memory_limit if vm_memory_limit is not none else omit }}"
+  register: vm_compute_update_result
+  when: not ansible_check_mode
+
+# 結果の表示
+- name: Display compute resource update result
+  ansible.builtin.debug:
+    msg:
+      - "VM compute resources updated successfully"
+      - "CPU Cores: {{ vm_cpu_cores | default('unchanged') }}"
+      - "Memory (MB): {{ vm_memory_mb | default('unchanged') }}"
+      - "Update Result: {{ vm_compute_update_result.changed | default('check mode') }}"
+  when: vm_compute_update_result is defined or ansible_check_mode
+
+# 変更後のVM情報を取得
+- name: Verify compute resource changes
+  community.vmware.vmware_guest_info:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: "{{ vcenter_validate_certs }}"
+    datacenter: "{{ vm_datacenter }}"
+    name: "{{ vm_name }}"
+  register: vm_info_after_compute_update
+  when: not ansible_check_mode
+
+# 取得したVM情報を表示
+- name: Show updated compute specifications
+  ansible.builtin.debug:
+    msg:
+      - "Current VM Compute Specifications:"
+      - "CPU Cores: {{ vm_info_after_compute_update.instance.hw_processor_count }}"
+      - "Memory (MB): {{ vm_info_after_compute_update.instance.hw_memtotal_mb }}"
+  when: 
+    - not ansible_check_mode
+    - vm_info_after_compute_update is defined

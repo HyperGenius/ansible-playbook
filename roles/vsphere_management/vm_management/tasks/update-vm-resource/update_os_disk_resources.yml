@@ -1,0 +1,88 @@
+---
+# VMのOSディスクのサイズ拡張（縮小は不可）
+
+# バリデーションチェック
+- name: Validate VM OS disk parameters
+  ansible.builtin.assert:
+    that:
+      - vm_name is defined and vm_name | length > 0
+      - vm_os_disk_size_gb is defined
+      - vm_os_disk_size_gb is number
+      - vm_os_disk_size_gb > 0
+    fail_msg: "VM name and OS disk size (vm_os_disk_size_gb) must be defined and greater than 0"
+    success_msg: "VM OS disk parameters validation passed"
+
+# 現在のディスク情報を表示
+- name: Display current OS disk information
+  ansible.builtin.include_tasks: display_disk_info.yml
+  vars:
+    display_current_config: true  # 現在のディスク設定を表示
+    display_comparison: true      # 要求されたディスク設定との比較表示
+    disk_operation_type: "OS Disk Update"  # サマリー表示するディスク操作タイプ
+
+# --- ディスク縮小ならエラーを発生させる ---
+- block:
+  - name: Warn if attempting to shrink OS disk
+    ansible.builtin.debug:
+      msg:
+        - "WARNING: Cannot shrink disk!"
+        - "Current OS disk size: {{ extracted_os_disk_size | default('Unknown') }} GB"
+        - "Requested size: {{ vm_os_disk_size_gb }} GB"
+        - "Only disk expansion is supported."
+
+  - name: Fail if attempting to shrink OS disk
+    ansible.builtin.fail:
+      msg: "Cannot shrink OS disk from {{ extracted_os_disk_size }}GB to {{ vm_os_disk_size_gb }}GB. Only expansion is supported."
+    when:
+      - not (vm_allow_disk_shrink | default(false))
+
+  when:
+    - not ansible_check_mode
+    - extracted_os_disk_size is defined
+    - extracted_os_disk_size | int > 0
+    - vm_os_disk_size_gb | int < extracted_os_disk_size | int
+# --- ディスク縮小チェック ここまで ---
+
+# OSディスクのサイズ拡張
+- name: Update OS disk size
+  community.vmware.vmware_guest:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: "{{ vcenter_validate_certs }}"
+    datacenter: "{{ vm_datacenter }}"
+    name: "{{ vm_name }}"
+    state: present
+    disk:
+      - size_gb: "{{ vm_os_disk_size_gb }}"
+        state: present
+        type: "{{ vm_os_disk_type | default(extracted_os_disk_type) | default('thin') }}"
+        datastore: "{{ vm_os_disk_datastore | default(extracted_os_disk_datastore) | default(omit) }}"
+  register: vm_os_disk_update_result
+  when: 
+    - not ansible_check_mode
+
+# 更新結果の表示
+- name: Display OS disk update results
+  ansible.builtin.debug:
+    msg:
+      - "OS Disk Update Results:"
+      - "Update Status: {{ vm_os_disk_update_result.changed | default('check mode') }}"
+      - "Target Size: {{ vm_os_disk_size_gb }} GB"
+      - "Used Disk Type: {{ vm_os_disk_type | default(extracted_os_disk_type) | default('thin') }}"
+      - "Used Datastore: {{ vm_os_disk_datastore | default(extracted_os_disk_datastore) | default('current datastore') }}"
+      - "Previous Size: {{ extracted_os_disk_size | default('Unknown') }} GB"
+  when: vm_os_disk_update_result is defined or ansible_check_mode
+
+# 更新後のディスク情報を表示
+- name: Display updated OS disk information
+  ansible.builtin.include_tasks: display_disk_info.yml
+  vars:
+    display_updated_config: true
+    display_summary: true
+    disk_operation_type: "OS Disk Update"
+    disk_operation_status: "{{ 'Completed' if (vm_os_disk_update_result.changed | default(false)) else 'No changes needed' }}"
+  when: 
+    - not ansible_check_mode
+    - vm_os_disk_update_result is defined
+    - vm_os_disk_update_result.changed
