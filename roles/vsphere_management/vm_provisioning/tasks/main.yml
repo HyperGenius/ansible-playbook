@@ -1,0 +1,12 @@
+---
+# All vSphere API tasks need to be delegated to localhost
+- name: Execute vSphere VM provisioning tasks
+  block:
+    # 認証情報の読み込み
+    - name: Load vCenter credentials
+      ansible.builtin.include_tasks: 01_load_credentials.yml
+
+    # VM作成
+    - name: Create VM
+      ansible.builtin.include_tasks: 02_create.yml
+  delegate_to: localhost

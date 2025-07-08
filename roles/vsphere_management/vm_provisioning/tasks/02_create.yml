@@ -1,0 +1,67 @@
+---
+# 必須パラメータ定義の確認
+- name: Check required parameters
+  ansible.builtin.assert:
+    that:
+      - vm_name is defined
+      - vm_os_family in ['RedHat', 'Windows']
+      - vm_datacenter is defined
+      - vm_cluster is defined
+      - vm_folder is defined
+      - vm_template_name is defined
+      - vm_eth0_network_portgroup is defined
+      - vm_eth0_ip_address is defined
+      - vm_eth0_netmask is defined
+      - vm_eth0_gateway is defined
+    fail_msg: "Required parameters are missing or invalid."
+
+# OSファミリーに応じてVMのドメインとDNSサーバーを設定
+- name: Set customization spec based on OS family
+  ansible.builtin.set_fact:
+    customization_spec:
+      RedHat:
+        domain: "{{ vm_domain }}"
+        dns_servers: "{{ vm_dns_servers }}"
+        password: "{{ vm_template_sudo_password if vm_template_sudo_password is defined else vm_template_password }}"
+      Windows:
+        domain: "{{ vm_domain }}"
+        dns_servers: "{{ vm_dns_servers }}"
+        password: "{{ vm_template_windows_admin_password if vm_template_windows_admin_password is defined else omit }}"
+
+# テンプレートから仮想マシンをクローンしてカスタマイズ
+- name: Clone and customize virtual machine from template
+  community.vmware.vmware_guest:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: "{{ vcenter_validate_certs }}"
+    datacenter: "{{ vm_datacenter }}"
+    cluster: "{{ vm_cluster }}"
+    folder: "{{ vm_folder }}"
+    name: "{{ vm_name }}"
+    template: "{{ vm_template_name }}"
+    state: "{{ vm_power_state | default('poweredon') }}"
+    hardware:
+      num_cpus: "{{ vm_cpu_cores }}"
+      memory_mb: "{{ vm_memory_mb }}"
+      # 詳細パラメータ： CPUとメモリの予約と制限を設定, 設定がない場合はomit
+      cpu_reservation: "{{ vm_cpu_reservation if vm_cpu_reservation is not none else omit }}"
+      mem_reservation: "{{ vm_memory_reservation if vm_memory_reservation is not none else omit }}"
+      mem_limit: "{{ vm_memory_limit if vm_memory_limit is not none else omit }}"
+    disk:
+      - size_gb: "{{ vm_os_disk_size_gb }}"
+        type: "{{ vm_os_disk_type | default('thin') }}"
+        datastore: "{{ vm_os_disk_datastore if vm_os_disk_datastore is not none else omit }}"
+    networks:
+      # 初回OS設定用管理ネットワーク
+      - name: "{{ vm_os_setting_network_portgroup | default('VM Network') }}"
+    customization: "{{ customization_spec[vm_os_family] | default(omit) }}"
+    wait_for_ip_address: yes
+  register: vm_provision_result
+  when: not ansible_check_mode
+
+# 仮想マシンのプロビジョニング結果を表示
+- name: Show VM provisioning result
+  ansible.builtin.debug:
+    var: vm_provision_result
+  when: vm_provision_result is defined

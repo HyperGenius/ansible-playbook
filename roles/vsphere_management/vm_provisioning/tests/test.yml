@@ -1,0 +1,38 @@
+---
+# Test playbook for vm_provisioning role
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    # vCenter設定
+    vcenter_number: 1
+    
+    # VM基本設定
+    vm_name: "test-vm-provisioning"
+    vm_os_family: "RedHat"
+    vm_datacenter: "MyDatacenter"
+    vm_cluster: "MyCluster"
+    vm_folder: "/vm/test"
+    vm_template_name: "redhat"
+    
+    # VMリソース設定
+    vm_cpu_cores: 2
+    vm_memory_mb: 4096
+    vm_os_disk_size_gb: 20
+    vm_os_disk_type: "thin"
+    
+    # ネットワーク設定
+    vm_eth0_network_portgroup: "VM Network"
+    vm_eth0_ip_address: "192.168.1.100"
+    vm_eth0_netmask: "255.255.255.0"
+    vm_eth0_gateway: "192.168.1.1"
+    vm_dns_servers:
+      - "8.8.8.8"
+      - "8.8.4.4"
+    vm_domain: "test.local"
+    
+    # 電源設定
+    vm_power_state: "poweredon"
+    
+  roles:
+    - role: vsphere_management/vm_provisioning
